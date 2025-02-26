@@ -1,13 +1,5 @@
 patient,sample,platform,readgroup,fq1,fq2,seqtype
-patient101,normal,ILLUMNIA,rg1,/scratch/groups/carilee/lab-datasets/col11a1/wes/CTR101-1_1.fastq.gz,/scratch/groups/carilee/lab-datasets/col11a1/wes/CTR101-1_2.fastq.gz,WES
-patient101,normal,ILLUMNIA,rg2,/scratch/groups/carilee/lab-datasets/col11a1/wes/CTR101-2_1.fastq.gz,/scratch/groups/carilee/lab-datasets/col11a1/wes/CTR101-2_2.fastq.gz,WES
-patient101,normal,ILLUMNIA,rg3,/scratch/groups/carilee/lab-datasets/col11a1/wes/CTR101-3_1.fastq.gz,/scratch/groups/carilee/lab-datasets/col11a1/wes/CTR101-3_2.fastq.gz,WES
-patient101,tumor,ILLUMNIA,rg1,/scratch/groups/carilee/lab-datasets/col11a1/wes/T101-1_1.fastq.gz,/scratch/groups/carilee/lab-datasets/col11a1/wes/T101-1_2.fastq.gz,WES
-patient101,tumor,ILLUMNIA,rg2,/scratch/groups/carilee/lab-datasets/col11a1/wes/T101-2_1.fastq.gz,/scratch/groups/carilee/lab-datasets/col11a1/wes/T101-2_2.fastq.gz,WES
-patient101,tumor,ILLUMNIA,rg3,/scratch/groups/carilee/lab-datasets/col11a1/wes/T101-3_1.fastq.gz,/scratch/groups/carilee/lab-datasets/col11a1/wes/T101-3_2.fastq.gz,WES
-patient102,normal,ILLUMNIA,rg1,/scratch/groups/carilee/lab-datasets/col11a1/wes/CTR102-1_1.fastq.gz,/scratch/groups/carilee/lab-datasets/col11a1/wes/CTR102-1_2.fastq.gz,WES
-patient102,normal,ILLUMNIA,rg2,/scratch/groups/carilee/lab-datasets/col11a1/wes/CTR102-2_1.fastq.gz,/scratch/groups/carilee/lab-datasets/col11a1/wes/CTR102-2_2.fastq.gz,WES
-patient102,normal,ILLUMNIA,rg3,/scratch/groups/carilee/lab-datasets/col11a1/wes/CTR102-3_1.fastq.gz,/scratch/groups/carilee/lab-datasets/col11a1/wes/CTR102-3_2.fastq.gz,WES
-patient102,tumor,ILLUMNIA,rg1,/scratch/groups/carilee/lab-datasets/col11a1/wes/T102-1_1.fastq.gz,/scratch/groups/carilee/lab-datasets/col11a1/wes/T102-1_2.fastq.gz,WES
-patient102,tumor,ILLUMNIA,rg2,/scratch/groups/carilee/lab-datasets/col11a1/wes/T102-2_1.fastq.gz,/scratch/groups/carilee/lab-datasets/col11a1/wes/T102-2_2.fastq.gz,WES
-patient102,tumor,ILLUMNIA,rg3,/scratch/groups/carilee/lab-datasets/col11a1/wes/T102-3_1.fastq.gz,/scratch/groups/carilee/lab-datasets/col11a1/wes/T102-3_2.fastq.gz,WES
+patient_9-BA_S7,tumor,ILLUMINA,rg1,/CTGlab/projects/mcc_analysis/fastq/9-BA_S7_L001_R1_trimmed.fastq.gz,/CTGlab/projects/mcc_analysis/fastq/9-BA_S7_L001_R2_trimmed.fastq.gz,WES
+patient_9-BA_S7,tumor,ILLUMINA,rg2,/CTGlab/projects/mcc_analysis/fastq/9-BA_S7_L002_R1_trimmed.fastq.gz,/CTGlab/projects/mcc_analysis/fastq/9-BA_S7_L002_R2_trimmed.fastq.gz,WES
+patient_9-BA_S7,tumor,ILLUMINA,rg1,/CTGlab/projects/mcc_analysis/fastq/9-BA_S7_L003_R1_trimmed.fastq.gz,/CTGlab/projects/mcc_analysis/fastq/9-BA_S7_L003_R2_trimmed.fastq.gz,WES
+patient_9-BA_S7,tumor,ILLUMINA,rg2,/CTGlab/projects/mcc_analysis/fastq/9-BA_S7_L004_R1_trimmed.fastq.gz,/CTGlab/projects/mcc_analysis/fastq/9-BA_S7_L004_R2_trimmed.fastq.gz,WES
