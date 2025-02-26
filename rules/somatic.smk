@@ -15,18 +15,23 @@ rule mutect2:
         unpack(get_mutect2_input),
         ref=config['resources']['reference_fasta'],
         gnomad=config['resources']['gnomad'],
-        interval="interval-files/{interval}-scattered.interval_list"
+        interval=config['output_folder'] +
+        "interval-files/{interval}-scattered.interval_list"
     output:
-        vcf=temp("vcfs/{patient}.{interval}.unfiltered.vcf"),
-        idx=temp("vcfs/{patient}.{interval}.unfiltered.vcf.idx"),
-        stats=temp("vcfs/{patient}.{interval}.unfiltered.vcf.stats"),
-        f1r2tar=temp("vcfs/{patient}.{interval}.f1r2.tar.gz")
+        vcf=config['output_folder'] +
+        temp("vcfs/{patient}.{interval}.unfiltered.vcf"),
+        idx=config['output_folder'] +
+        temp("vcfs/{patient}.{interval}.unfiltered.vcf.idx"),
+        stats=config['output_folder'] +
+        temp("vcfs/{patient}.{interval}.unfiltered.vcf.stats"),
+        f1r2tar=config['output_folder'] +
+        temp("vcfs/{patient}.{interval}.f1r2.tar.gz")
     params:
         tumor="{patient}.tumor",
         normalname= ' ' if tumor_only else '-normal ' + "{patient}.normal",
         normal_input=lambda wildcards, input: ' ' if tumor_only else "-I " + input.normal,
-        pon="--panel-of-normals " + pon_vcf,
-        extra=mutect_flags
+        pon="--panel-of-normals " + config['resources']['PoN'],
+        extra=config['params']['mutect2']['args'],
     container: config['containers']['ctgflow_core']
     resources:
     log:
@@ -34,7 +39,7 @@ rule mutect2:
         """
         gatk Mutect2 -R {input.ref} -I {input.tumor} \
             -tumor {params.tumor} -O {output.vcf} \
-            --germline-resource {input.germ_res} \
+            --germline-resource {input.gnomad} \
             --f1r2-tar-gz {output.f1r2tar} \
             -L {input.interval} \
             {params.normal_input} {params.normalname} \
@@ -60,9 +65,11 @@ rule orientation_bias:
 
 rule pileup_summaries:
     input:
-        bam="bams/{patient}.{sample_type}.bam",
-        germ_res=contamination_resource
+        bam=config['output_folder']
+        + "bams/{patient}.{sample_type}.bam",
+        germ_res=config['resources']['contamination']
     output:
+        config['output_folder'] +
         "qc/{patient}_{sample_type}_pileupsummaries.table"
     container: config['containers']['ctgflow_core']
     resources:
@@ -77,6 +84,7 @@ rule calculate_contamination:
     input:
         unpack(get_contamination_input)
     output:
+        config['output_folder'] +
         "qc/{patient}_contamination.table"
     params:
         matched=lambda wildcards, input:'' if tumor_only else '-matched ' + input.normal
@@ -94,7 +102,8 @@ rule merge_vcfs:
     input:
         get_mergevcfs_input
     output:
-        vcf="vcfs/{patient}.unfiltered.vcf"
+        vcf=config['output_folder']
+        + "vcfs/{patient}.unfiltered.vcf",
     params:
         i=lambda wildcards, input: ['-I ' + vcf for vcf in input]
     container: config['containers']['ctgflow_core']
@@ -109,7 +118,8 @@ rule merge_stats:
     input:
         get_mergestats_input
     output:
-        stats="vcfs/{patient}.unfiltered.vcf.stats"
+        stats=config['output_folder']
+        + "vcfs/{patient}.unfiltered.vcf.stats",
     params:
         i=lambda wildcards, input: ['-stats ' + s for s in input]
     container: config['containers']['ctgflow_core']
@@ -141,7 +151,7 @@ rule filter_calls:
         inter_stats=config['output_folder']
         + "vcfs/filtered/{patient}.filtered.vcf.filteringStats.tsv",
     params:
-        extra=filter_flags
+        extra=config['params']['mutect2']['filtering']
     container: config['containers']['ctgflow_core']
     resources:
     log:
