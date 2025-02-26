@@ -1,13 +1,19 @@
 singularity: "docker://continuumio/miniconda3"
+configfile: "config/config_main.yaml"
 include: "rules/common.smk"
 
 rule targets:
     input:
-        expand("{ref_fasta}.{suffix}", ref_fasta=ref_fasta, suffix=file_suffixes),
-        "mafs/variants.maf",
-        "qc/multiqc_report.html",
-        "qc/depths.svg"
+        vcf=expand(
+            config['output_folder']
+            + "vcfs/{patient}.vep.vcf.gz",
+            patient=patients
+            ),
+        idx=expand(
+            config['output_folder']
+            + "vcfs/{patient}.vep.vcf.gz.tbi",
+            patient=patients
+            )
 
 include: "rules/preprocessing.smk"
-include: "rules/calling.smk"
-include: "rules/pon.smk"
+include: "rules/somatic.smk"
