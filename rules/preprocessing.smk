@@ -107,12 +107,10 @@ rule markdups_sort:
     log:
     shell:
         """
-        gatk MarkDuplicatesSpark \
+        gatk --java-options "-XX:ParallelGCThreads={threads}" MarkDuplicates \
             -I {params.inbams} \
             -O {output.bam} \
-            --tmp-dir {params.tmp} \
-            --conf 'spark.executor.cores={threads}' \
-            --conf 'spark.local.dir={params.tmp}'
+            --tmp-dir {params.tmp} 
         """
 
 rule bqsr:
