@@ -92,12 +92,8 @@ rule markdups_sort:
         bam=temp(
             config['output_folder']
             + "bams/{patient}.{sample_type}.sorted.bam"),
-        bai=temp(
-            config['output_folder']
-            + "bams/{patient}.{sample_type}.sorted.bam.bai"),
-        sbi=temp(
-            config['output_folder']
-            + "bams/{patient}.{sample_type}.sorted.bam.sbi")
+        metrics=config['output_folder']
+            + "qc/{patient}.{sample_type}.markdup_metrics",
     params:
         inbams=lambda wildcards, input: " -I  ".join(input),
         tmp=tmp_dir
@@ -110,43 +106,95 @@ rule markdups_sort:
         gatk --java-options "-XX:ParallelGCThreads={threads}" MarkDuplicates \
             -I {params.inbams} \
             -O {output.bam} \
-            --tmp-dir {params.tmp} 
+            -M {output.metrics} \
+            --TMP_DIR {params.tmp} 
         """
 
+rule sort_mrkdups:
+    input:
+        bam=config['output_folder']
+            + "bams/{patient}.{sample_type}.sorted.bam",
+        ref=ref_fasta
+    output:
+        bam=temp(
+            config['output_folder']
+            + "bams/{patient}.{sample_type}.sorted.markdup.bam"),
+        bai=config['output_folder']
+            + "bams/{patient}.{sample_type}.sorted.markdup.bam.bai"
+    container: config['containers']['ctgflow_core']
+    resources:
+    log:
+    shell:
+        """
+        samtools sort -@ 10 -m 2G -O bam -o {output.bam} {input.bam} \
+        && samtools index {output.bam}
+        """
+
+
+#@TODO: scatter on multiple intervals like Mutect2 follwing 
+# https://github.com/gatk-workflows/broad-prod-wgs-germline-snps-indels/blob/master/PairedEndSingleSampleWf-fc-hg38.wdl
 rule bqsr:
     input:
         bam=config['output_folder']
-            +"bams/{patient}.{sample_type}.sorted.bam",
+            +"bams/{patient}.{sample_type}.sorted.markdup.bam",
+        interval=config["output_folder"]
+            +"interval-files/{interval}-scattered.interval_list",
         ref=ref_fasta
     output:
-        recal=config['output_folder']
-            +"qc/{patient}.{sample_type}.recal_data.table"
+        recal=temp(
+            config['output_folder']
+            +"qc/{patient}.{sample_type}.{interval}.recal_data.table"
+        )
     params:
-        ks=lambda wildcards, input: f"--known-sites {' '.join([
-            config['resources'][ks] for ks in ['dbsnps', 'known-indels', '1000g']
-        ])}",
+        ks=lambda wildcards, input: " ".join(
+        [ f"--known-sites {config['resources'][ks]}" for ks in ['dbsnps', 'known-indels', '1000g']]),
         tmp=tmp_dir
     container: config['containers']['ctgflow_core']
     resources:
     log:
     shell:
         """
-        gatk BaseRecalibrator -I {input.bam} -R {input.ref} -O {output.recal} \
-            {params.ks} --tmp-dir {params.tmp}
+        gatk --java-options "-XX:GCTimeLimit=50 -XX:GCHeapFreeLimit=10 -Xms4000m" \
+        BaseRecalibrator \
+        -I {input.bam} -R {input.ref} \
+        --use-original-qualities \
+        -O {output.recal} \
+        -L {input.interval} \
+        {params.ks} --tmp-dir {params.tmp}
+        """
+
+rule GatherBQSRReports:
+    input:
+        get_gather_bqsr_reports
+    output:
+        config['output_folder']
+            +"qc/{patient}.{sample_type}.recal_data.table"
+    container: config['containers']['ctgflow_core']
+    resources:
+    log:
+    shell:
+        """
+        gatk --java-options "-Xms3000m" \
+            GatherBQSRReports \
+            {input} \
+            -O {output}
         """
 
 rule apply_bqsr:
     input:
         bam=config['output_folder']
-            +"bams/{patient}.{sample_type}.sorted.bam",
+            +"bams/{patient}.{sample_type}.sorted.markdup.bam",
         recal=config['output_folder']
-            +"qc/{patient}.{sample_type}.recal_data.table",
+            +"qc/{patient}.{sample_type}.{interval}.recal_data.table",
+        interval=config['output_folder'] +
+        "interval-files/{interval}-scattered.interval_list",
         ref=ref_fasta
     output:
-        bam=config['output_folder']
-            +"bams/{patient}.{sample_type}.bam",
+        bam=temp(
+            config['output_folder']
+            +"bams/{patient}.{sample_type}.{interval}.bam"),
         bai=config['output_folder']
-            +"bams/{patient}.{sample_type}.bai"
+            +"bams/{patient}.{sample_type}.{interval}.bai",
     params:
         tmp=tmp_dir
     container: config['containers']['ctgflow_core']
@@ -154,14 +202,61 @@ rule apply_bqsr:
     log:
     shell:
         """
-        gatk ApplyBQSR \
+        gatk --java-options "-Xms3000m -Xmx10G" \
+            ApplyBQSR \
             -I {input.bam} \
             -R {input.ref} \
             -O {output.bam} \
+            -L {input.interval} \
+            --use-original-qualities \
             -bqsr {input.recal} \
             --add-output-sam-program-record \
+            --static-quantized-quals 10 --static-quantized-quals 20 --static-quantized-quals 30 \
             --tmp-dir {params.tmp}
         """
+
+rule GatherSortedBam:
+    input:
+        get_gather_bam_input
+    output:
+        bam=temp(config['output_folder']
+            +"bams/{patient}.{sample_type}.bam"),
+    params:
+        tmp=tmp_dir,
+        bams=lambda wildcards, input: " ".join([f"-I {f}" for f in input])
+    container: config['containers']['ctgflow_core']
+    resources:
+    log:
+    shell:
+        """
+        gatk --java-options "-Xms2000m -Xmx2500m" \
+            GatherBamFiles \
+            {params.bams} \
+            -O {output.bam}
+        """
+
+rule sortGather:
+    input:
+        bam=config['output_folder']
+            +"bams/{patient}.{sample_type}.bam",
+        ref=ref_fasta,
+    output:
+        cram=config['output_folder']
+            +"bams/{patient}.{sample_type}.cram",
+        crai=config['output_folder']
+            +"bams/{patient}.{sample_type}.cram.crai"
+    params:
+    container: config['containers']['ctgflow_core']
+    resources:
+    log:
+    shell:
+        """
+        samtools sort -@ 10 -m 2G -O cram \
+        -T {wildcards.patient}.{wildcards.sample_type} \
+        -o {output.cram} {input.bam};
+        samtools index {output.cram}
+        """
+
 
 rule coverage:
     input:
@@ -282,7 +377,7 @@ rule split_intervals:
         interval_files
     params:
         N=num_workers,
-        d="interval-files"
+        d=config['output_folder']+"interval-files"
     container: config['containers']['ctgflow_core']
     resources:
     log:
