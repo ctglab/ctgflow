@@ -20,8 +20,6 @@ rule mutect2:
     output:
         vcf=config['output_folder'] +
         temp("vcfs/{patient}.{interval}.unfiltered.vcf"),
-        idx=config['output_folder'] +
-        temp("vcfs/{patient}.{interval}.unfiltered.vcf.idx"),
         stats=config['output_folder'] +
         temp("vcfs/{patient}.{interval}.unfiltered.vcf.stats"),
         f1r2tar=config['output_folder'] +
@@ -66,7 +64,8 @@ rule orientation_bias:
 rule pileup_summaries:
     input:
         bam=config['output_folder']
-        + "bams/{patient}.{sample_type}.bam",
+        + "bams/{patient}.{sample_type}.cram",
+        ref=config['resources']['reference_fasta'],
         germ_res=config['resources']['contamination']
     output:
         config['output_folder'] +
@@ -76,8 +75,10 @@ rule pileup_summaries:
     log:
     shell:
         """
-        gatk GetPileupSummaries -I {input.bam} -V {input.germ_res} \
-            -L {input.germ_res} -O {output}
+        gatk GetPileupSummaries -I {input.bam} \
+        -V {input.germ_res} \
+        -L {input.germ_res} -O {output} \
+        -R {input.ref}
         """
 
 rule calculate_contamination:
@@ -165,17 +166,36 @@ rule filter_calls:
             {params.extra}
         """
 
-rule select_calls:
+rule compress_calls:
     input:
         vcf=config['output_folder']
         + "vcfs/filtered/{patient}.filtered.vcf",
-        idx=config['output_folder']
-        + "vcfs/filtered/{patient}.filtered.vcf.idx",
     output:
         vcf=config['output_folder']
-        + "vcfs/filtered/{patient}.filtered.vcf.gz",
-        idx=config['output_folder']
-        + "vcfs/filtered/{patient}.filtered.vcf.gz.tbi",
+        + "vcfs/filtered/{patient}.withFilters.vcf.gz"
+    params:
+    container:
+        config["containers"]["ctgflow_core"],
+    resources:
+    log:
+    shell:
+        """
+        bgzip -c {input.vcf} > {output.vcf} 
+        tabix -p vcf {output.vcf}
+        """
+
+
+rule select_calls:
+    input:
+        vcf=config['output_folder']
+        + "vcfs/filtered/{patient}.withFilters.vcf.gz",
+    output:
+        vcf=temp(
+        config['output_folder']
+        + "vcfs/filtered/{patient}.filtered.vcf.gz"),
+        idx=temp(
+        config['output_folder']
+        + "vcfs/filtered/{patient}.filtered.vcf.gz.tbi"),
     params:
     container:
         config['containers']['ctgflow_core']
@@ -184,7 +204,7 @@ rule select_calls:
     log:
     shell:
         """
-        bcftools filter .,PASS {input.vcf} \
+        bcftools view -f .,PASS {input.vcf} \
         -Oz -o {output.vcf} ;
         tabix -p vcf {output.vcf}
         """
@@ -193,6 +213,8 @@ rule vep:
     input:
         vcf=config['output_folder']
         + "vcfs/filtered/{patient}.filtered.vcf.gz",
+        idx=config['output_folder']
+        + "vcfs/filtered/{patient}.filtered.vcf.gz.tbi",
         fasta=config['resources']['reference_fasta'],
         vep_cache=config['resources']['vep_cache'],
     output:
@@ -209,14 +231,14 @@ rule vep:
     shell:
         """
         vep --input_file {input.vcf} --output_file {output.vcf} \
-            --fasta {input.fasta} --cache {input.vep_cache} \
+            --fasta {input.fasta} --cache --dir {input.vep_cache} \
             --assembly {params.assembly} {params.extra}
         """
 
 rule compress_vcf:
     input:
         vcf=config['output_folder']
-        + "vcfs/filtered/{patient}.filtered.vcf.gz",
+        + "vcfs/{patient}.vep.vcf",
     output:
         vcf=config['output_folder']
         + "vcfs/{patient}.vep.vcf.gz",
