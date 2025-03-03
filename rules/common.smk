@@ -68,7 +68,7 @@ if tmp_dir == 'None':
 # Genomic Regions
 regions_bed = config['resources']['genomic_regions']
 regions_gatk = os.path.basename(regions_bed).replace('.bed', '.interval_list')
-regions_gatk = os.path.join('interval-files', regions_gatk)
+regions_gatk = os.path.join(config['output_folder'], 'interval-files', regions_gatk)
 
 
 wildcard_constraints:
@@ -93,9 +93,9 @@ def get_platform(wildcards):
 
 def get_mutect2_input(wildcards):
     files = {}
-    files['tumor'] = f"{config['output_folder']}bams/{wildcards.patient}.tumor.bam"
+    files['tumor'] = f"{config['output_folder']}bams/{wildcards.patient}.tumor.cram"
     if not tumor_only:
-        files['normal'] = f"{config['output_folder']}bams/{wildcards.patient}.normal.bam"
+        files['normal'] = f"{config['output_folder']}bams/{wildcards.patient}.normal.cram"
     return files
     # if use_pon:
     #     return {
@@ -162,5 +162,21 @@ def get_mergestats_input(wildcards):
     intervals = get_intervals()
     files = [f"{config['output_folder']}vcfs/{wildcards.patient}.{i}.unfiltered.vcf.stats" for i in intervals]
     return files
+
+def get_gather_bam_input(wildcards):
+    intervals = get_intervals()
+    files = [f"{config['output_folder']}bams/{wildcards.patient}.{wildcards.sample_type}.{i}.bam" for i in intervals]
+    return files
+
+def get_bqsr_output(wildcards):
+    intervals = get_intervals()
+    recal = [f"{config['output_folder']}qc/{wildcards.patient}.{wildcards.sample_type}.{i}.recal_data.table" for i in intervals]
+    return recal
+
+def get_gather_bqsr_reports(wildcards):
+    intervals = get_intervals()
+    recal=[config['output_folder']
+            +"-I qc/{patient}.{sample_type}.{interval}.recal_data.table" for interval in intervals]
+    return recal
 
 interval_files = get_interval_files()
