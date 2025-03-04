@@ -144,7 +144,7 @@ def get_intervals():
    
 def get_interval_files():
     ints = get_intervals()
-    files = [i + '-scattered.interval_list' for i in ints]
+    files = [f'{i}-scattered.interval_list' for i in ints]
     files = [os.path.join(config['output_folder'],"interval-files", f) for f in files]
     return files
 

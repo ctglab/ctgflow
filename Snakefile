@@ -1,4 +1,4 @@
-singularity: "docker://continuumio/miniconda3"
+container: "docker://continuumio/miniconda3"
 configfile: "config/config_main.yaml"
 include: "rules/common.smk"
 

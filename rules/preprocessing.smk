@@ -1,3 +1,5 @@
+from pathlib import Path
+
 rule combine_fqs:
     input:
         unpack(get_fastq)
@@ -11,6 +13,10 @@ rule combine_fqs:
     container: config['containers']['ctgflow_core']
     resources:
     log:
+        config['log_folder']
+        + "combine_fqs"
+        + "/"
+        + "{patient}.{sample_type}.{readgroup}.log"
     shell:
         """
         gatk FastqToSam -F1 {input.r1} -F2 {input.r2} \
@@ -29,6 +35,8 @@ rule bwa_index:
     container: config['containers']['ctgflow_core']
     resources:
     log:
+        config['log_folder']
+        + "bwa_index.log"
     shell:
         """
         bwa index {input}
@@ -48,6 +56,10 @@ rule bwa:
     container: config['containers']['ctgflow_core']
     resources:
     log:
+        config['log_folder']
+        + "bwa"
+        + "/"
+        + "{patient}.{sample_type}.{readgroup}.log"
     shell:
         """
         gatk SamToFastq -I {input.bam} -F /dev/stdout -INTER true -NON_PF true \
@@ -74,6 +86,10 @@ rule merge_bams:
     container: config['containers']['ctgflow_core']
     resources:
     log:
+        config['log_folder']
+        + "merge_bams"
+        + "/"
+        + "{patient}.{sample_type}.{readgroup}.log"
     shell:
         """
         gatk MergeBamAlignment \
@@ -101,6 +117,10 @@ rule markdups_sort:
     container: config['containers']['ctgflow_core']
     resources:
     log:
+        config['log_folder']
+        + "markdups_sort"
+        + "/"
+        + "{patient}.{sample_type}.log"
     shell:
         """
         gatk --java-options "-XX:ParallelGCThreads={threads}" MarkDuplicates \
@@ -124,6 +144,10 @@ rule sort_mrkdups:
     container: config['containers']['ctgflow_core']
     resources:
     log:
+        config['log_folder']
+        + "sort_mrkdups"
+        + "/"
+        + "{patient}.{sample_type}.log"
     shell:
         """
         samtools sort -@ 10 -m 2G -O bam -o {output.bam} {input.bam} \
@@ -152,6 +176,10 @@ rule bqsr:
     container: config['containers']['ctgflow_core']
     resources:
     log:
+        config['log_folder']
+        + "bqsr"
+        + "/"
+        + "{patient}.{sample_type}.{interval}.log"
     shell:
         """
         gatk --java-options "-XX:GCTimeLimit=50 -XX:GCHeapFreeLimit=10 -Xms4000m" \
@@ -172,6 +200,10 @@ rule GatherBQSRReports:
     container: config['containers']['ctgflow_core']
     resources:
     log:
+        config['log_folder']
+        + "gather_bqsr_reports"
+        + "/"
+        + "{patient}.{sample_type}.log"
     shell:
         """
         gatk --java-options "-Xms3000m" \
@@ -200,6 +232,10 @@ rule apply_bqsr:
     container: config['containers']['ctgflow_core']
     resources:
     log:
+        config['log_folder']
+        + "apply_bqsr"
+        + "/"
+        + "{patient}.{sample_type}.{interval}.log"
     shell:
         """
         gatk --java-options "-Xms3000m -Xmx10G" \
@@ -227,6 +263,10 @@ rule GatherSortedBam:
     container: config['containers']['ctgflow_core']
     resources:
     log:
+        config['log_folder']
+        + "gather_bam"
+        + "/"
+        + "{patient}.{sample_type}.log"
     shell:
         """
         gatk --java-options "-Xms2000m -Xmx2500m" \
@@ -242,13 +282,19 @@ rule sortGather:
         ref=ref_fasta,
     output:
         cram=config['output_folder']
-            +"bams/{patient}.{sample_type}.cram",
+            +"bams"
+            + "/"
+            + "{patient}.{sample_type}.cram",
         crai=config['output_folder']
             +"bams/{patient}.{sample_type}.cram.crai"
     params:
     container: config['containers']['ctgflow_core']
     resources:
     log:
+        config['log_folder']
+        + "sortGather"
+        + "/"
+        + "{patient}.{sample_type}.log"
     shell:
         """
         samtools sort -@ 10 -m 2G -O cram \
@@ -260,7 +306,11 @@ rule sortGather:
 
 rule coverage:
     input:
-        unpack(get_coverage_input)
+        bam=config['output_folder']
+            + "bams"
+            + "/"
+            + "{patient}.{sample_type}.cram",
+        regions=config['resources']['genomic_regions'],
     output:
         config['output_folder']
             + "qc/{patient}.{sample_type}.mosdepth.region.dist.txt",
@@ -276,10 +326,15 @@ rule coverage:
     container: config['containers']['ctgflow_core']
     resources:
     log:
+        config['log_folder']
+        + "coverage"
+        + "/"
+        + "{patient}.{sample_type}.log"
     shell:
         """
-        mosdepth --by {params.by} -t {threads} qc/{wildcards.patient}.{wildcards.sample_type} \
-            {input.bam}
+        mosdepth --by {params.by} -t {threads} \
+        qc/{wildcards.patient}.{wildcards.sample_type} \
+        {input.bam}
         """
 
 rule stats:
@@ -292,6 +347,10 @@ rule stats:
     container: config['containers']['ctgflow_core']
     resources:
     log:
+        config['log_folder']
+        + "samtools_stats"
+        + "/"
+        + "{patient}.{sample_type}.log"
     shell:
         """
         samtools flagstat {input} > {output}
@@ -309,6 +368,10 @@ rule fastqc:
     container: config['containers']['ctgflow_core']
     resources:
     log:
+        config['log_folder']
+        + "fastqc"
+        + "/"
+        + "{patient}.{sample_type}.log"
     shell:
         """
         tmpdir=qc/fastqc/{wildcards.patient}-{wildcards.sample_type}.tmp 
@@ -339,6 +402,10 @@ rule multiqc:
     container: config['containers']['ctgflow_core']
     resources:
     log:
+        config['log_folder']
+        + "multiqc"
+        + "/"
+        + "{patient}.{sample_type}.log"
     wrapper:
         "0.50.4/bio/multiqc"
 
@@ -353,6 +420,10 @@ rule seq_depths:
     container: config['containers']['ctgflow_core']
     resources:
     log:
+        config['log_folder']
+        + "seq_depths"
+        + "/"
+        + "depths_aggregate.log"
     script:
         "../scripts/gather_depths.py"
 
@@ -366,6 +437,10 @@ rule plot_depths:
     container: config['containers']['ctgflow_core']
     resources:
     log:
+        config['log_folder']
+        + "plot_depths"
+        + "/"
+        + "plot_depths.log"
     script:
         "../scripts/plot_depth.R"
 
@@ -377,10 +452,15 @@ rule split_intervals:
         interval_files
     params:
         N=num_workers,
-        d=config['output_folder']+"interval-files"
+        d=lambda w, input: os.path.join(
+            Path(w.intervals).parents[0], "split_intervals")
     container: config['containers']['ctgflow_core']
     resources:
     log:
+        config['log_folder']
+        + "split_intervals"
+        + "/"
+        + "split_intervals.log"
     shell:
         """
         gatk SplitIntervals -R {input.ref} -L {input.intervals} \
@@ -396,6 +476,10 @@ rule make_gatk_regions:
     container: config['containers']['ctgflow_core']
     resources:
     log:
+        config['log_folder']
+        + "make_gatk_regions"
+        + "/"
+        + "make_gatk_regions.log"
     shell:
         """
         gatk BedToIntervalList \
