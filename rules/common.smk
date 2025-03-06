@@ -74,14 +74,12 @@ regions_gatk = os.path.join(config['output_folder'], 'interval-files', regions_g
 wildcard_constraints:
     patient="|".join(patients),
     sample_type="|".join(sample_types)
-    
+
+
+
 def get_fastq(wildcards):
     return {'r1' : units.loc[(wildcards.patient, wildcards.sample_type, wildcards.readgroup), 'fq1'], 
             'r2' : units.loc[(wildcards.patient, wildcards.sample_type, wildcards.readgroup), 'fq2']}
-
-def get_readgroups(wildcards):
-    return units.loc[(wildcards.patient, wildcards.sample_type), 
-                    'readgroup'].unique().tolist()
 
 def get_dedup_input(wildcards):
     rgs = units.loc[(wildcards.patient, wildcards.sample_type), 'readgroup'].unique().tolist()
@@ -109,10 +107,6 @@ def get_mutect2_input(wildcards):
     #             'tumor' : f"bams/{wildcards.patient}.tumor.bam",
     #     }
 
-
-def get_call_pair(wildcards):
-    return {'normal' : f"{config['output_folder']}bams/{wildcards.patient}.normal.bam",
-            'tumor' : f"{config['output_folder']}bams/{wildcards.patient}.tumor.bam"}
 
 
 def get_contamination_input(wildcards):
