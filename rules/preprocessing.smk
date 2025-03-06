@@ -1,74 +1,3 @@
-from pathlib import Path
-
-rule combine_fqs:
-    input:
-        unpack(get_fastq)
-    output:
-        temp(
-            config['output_folder']
-            + "bams/{patient}.{sample_type}.{readgroup}.unaligned.bam")
-    params:
-        pl=get_platform,
-        tmp=tmp_dir
-    container: config['containers']['ctgflow_core']
-    resources:
-    log:
-        config['log_folder']
-        + "combine_fqs"
-        + "/"
-        + "{patient}.{sample_type}.{readgroup}.log"
-    shell:
-        """
-        gatk FastqToSam -F1 {input.r1} -F2 {input.r2} \
-            -O {output} \
-            -SM {wildcards.patient}.{wildcards.sample_type} \
-            -RG {wildcards.patient}.{wildcards.sample_type}.{wildcards.readgroup} \
-            --TMP_DIR {params.tmp} \
-            -PL {params.pl}
-        """
-
-rule bwa_index:
-    input:
-        ref_fasta
-    output:
-        [f"{ref_fasta}.{suffix}" for suffix in file_suffixes]
-    container: config['containers']['ctgflow_core']
-    resources:
-    log:
-        config['log_folder']
-        + "bwa_index.log"
-    shell:
-        """
-        bwa index {input}
-        """
-
-rule bwa:
-    input:
-        bwt_files=[f"{ref_fasta}.{suffix}" for suffix in file_suffixes],
-        bam=config['output_folder']
-            + "bams/{patient}.{sample_type}.{readgroup}.unaligned.bam",
-        ref=ref_fasta
-    output:
-        temp(
-            config['output_folder']
-            + "bams/{patient}.{sample_type}.{readgroup}.aligned.bam")
-    threads: 8
-    container: config['containers']['ctgflow_core']
-    resources:
-    log:
-        config['log_folder']
-        + "bwa"
-        + "/"
-        + "{patient}.{sample_type}.{readgroup}.log"
-    shell:
-        """
-        gatk SamToFastq -I {input.bam} -F /dev/stdout -INTER true -NON_PF true \
-        | \
-        bwa mem -p -v 3 -t {threads} -T 0 \
-            {input.ref} /dev/stdin - 2> >(tee {log} >&2) \
-        | \
-        samtools view -Shb -o {output}
-        """
 
 rule merge_bams:
     input:
@@ -453,7 +382,7 @@ rule split_intervals:
     params:
         N=num_workers,
         d=lambda w, input: os.path.join(
-            Path(w.intervals).parents[0], "split_intervals")
+            Path(input.intervals).parents[0], "split_intervals")
     container: config['containers']['ctgflow_core']
     resources:
     log:
