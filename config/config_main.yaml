@@ -1,6 +1,8 @@
 # One between ["WES", "WGS"]
 sequencing_type: "WES"
 tumor_only: true
+viral_integrated: true
+virus_name: "MCPyV"
 
 # PATH to relevant files
 units: "units.csv"
@@ -9,11 +11,13 @@ patients: "patients.csv"
 # DIRECTIVES
 output_folder: "/CTGlab/projects/mcc_analysis/output/"
 tmp_dir: "/CTGlab/projects/mcc_analysis/temp_gatk"
+log_folder: "/CTGlab/projects/mcc_analysis/logs/"
 
 # RESOURCES
 resources:
   assembly: "GRCh38"
   genomic_regions: "/CTGlab/projects/mcc_analysis/hg38_exome_v2.0.2_targets_sorted_validated.re_annotated.bed"
+  viral_genome: "/CTGlab/projects/mcc_analysis/MPCyV_genome.fa"
   reference_fasta: "/CTGlab/db/GRCh38_GIABv3_no_alt_analysis_set_maskedGRC_decoys_MAP2K3_KMT2C_KCNJ18.fasta"
   dbsnps: "/CTGlab/db/VCF_resources/dbsnp_146.hg38.vcf.gz"
   known-indels: "/CTGlab/db/VCF_resources/Homo_sapiens_assembly38.known_indels.vcf.gz"
