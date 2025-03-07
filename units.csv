@@ -3,3 +3,12 @@ patient_9-BA_S7,tumor,ILLUMINA,rg1,/CTGlab/projects/mcc_analysis/fastq/9-BA_S7_L
 patient_9-BA_S7,tumor,ILLUMINA,rg2,/CTGlab/projects/mcc_analysis/fastq/9-BA_S7_L002_R1_trimmed.fastq.gz,/CTGlab/projects/mcc_analysis/fastq/9-BA_S7_L002_R2_trimmed.fastq.gz,WES
 patient_9-BA_S7,tumor,ILLUMINA,rg1,/CTGlab/projects/mcc_analysis/fastq/9-BA_S7_L003_R1_trimmed.fastq.gz,/CTGlab/projects/mcc_analysis/fastq/9-BA_S7_L003_R2_trimmed.fastq.gz,WES
 patient_9-BA_S7,tumor,ILLUMINA,rg2,/CTGlab/projects/mcc_analysis/fastq/9-BA_S7_L004_R1_trimmed.fastq.gz,/CTGlab/projects/mcc_analysis/fastq/9-BA_S7_L004_R2_trimmed.fastq.gz,WES
+patient_01-BA_S8,tumor,ILLUMINA,rg1,/CTGlab/projects/mcc_analysis/fastq/01-BA_S8_R1_.fastq.gz,/CTGlab/projects/mcc_analysis/fastq/01-BA_S8_R1.fastq.gz,WES
+patient_01-BA_S8,tumor,ILLUMINA,rg2,/CTGlab/projects/mcc_analysis/fastq/01-BA_S8_R2_.fastq.gz,/CTGlab/projects/mcc_analysis/fastq/01-BA_S8_R2.fastq.gz,WES
+patient_01-BO_S6,tumor,ILLUMINA,rg1,/CTGlab/projects/mcc_analysis/fastq/01-BO_S6_R1_.fastq.gz,/CTGlab/projects/mcc_analysis/fastq/01-BO_S6_R1.fastq.gz,WES
+patient_01-BO_S6,tumor,ILLUMINA,rg2,/CTGlab/projects/mcc_analysis/fastq/01-BO_S6_R2_.fastq.gz,/CTGlab/projects/mcc_analysis/fastq/01-BO_S6_R2.fastq.gz,WES
+patient_01-IOV_S1,tumor,ILLUMINA,rg1,/CTGlab/projects/mcc_analysis/fastq/01-IOV_S1_R1_.fastq.gz,/CTGlab/projects/mcc_analysis/fastq/01-IOV_S1_R1.fastq.gz,WES
+patient_01-IOV_S1,tumor,ILLUMINA,rg2,/CTGlab/projects/mcc_analysis/fastq/01-IOV_S1_R2_.fastq.gz,/CTGlab/projects/mcc_analysis/fastq/01-IOV_S1_R2.fastq.gz,WES
+patient_01-RM_S3,tumor,ILLUMINA,rg1,/CTGlab/projects/mcc_analysis/fastq/01-RM_S3_R1_.fastq.gz,/CTGlab/projects/mcc_analysis/fastq/01-RM_S3_R1.fastq.gz,WES
+patient_01-RM_S3,tumor,ILLUMINA,rg2,/CTGlab/projects/mcc_analysis/fastq/01-RM_S3_R2_.fastq.gz,/CTGlab/projects/mcc_analysis/fastq/01-RM_S3_R2.fastq.gz,WES
+
