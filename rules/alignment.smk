@@ -117,10 +117,32 @@ rule bwa:
         """
 
 if config['viral_integrated']:
+
+    rule sort_unaligned:
+        input:
+            bam=config['output_folder']
+                + "bams/{patient}.{sample_type}.{readgroup}.unfiltered.bam"
+        output:
+            temp(
+                config['output_folder']
+                + "bams/{patient}.{sample_type}.{readgroup}.sorted.bam"),
+            temp(
+                config['output_folder']
+                + "bams/{patient}.{sample_type}.{readgroup}.sorted.bam.bai"),
+        container: config['containers']['ctgflow_core']
+        threads: 4
+        resources:
+        shell:
+            """
+            samtools sort --write-index -@ {threads} -o {output[0]} {input.bam}
+            """
+
     rule extract_viral:
         input:
             bam=config['output_folder']
-                + "bams/{patient}.{sample_type}.{readgroup}.unfiltered.bam",
+                + "bams/{patient}.{sample_type}.{readgroup}.sorted.bam",
+            bai=config['output_folder']
+                + "bams/{patient}.{sample_type}.{readgroup}.sorted.bam.bai",
             ref_fasta=config['output_folder']
                 + "reference"
                 + "/"
