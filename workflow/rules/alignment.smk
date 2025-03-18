@@ -167,14 +167,14 @@ if config["viral_integrated"]:
                 "{patient}.{sample_type}.{readgroup}.unfiltered.bam",
             ),
         output:
-            temp(
+            bam=temp(
                 os.path.join(
                     config["output_folder"],
                     "bams",
                     "{patient}.{sample_type}.{readgroup}.sorted.bam",
                 )
             ),
-            temp(
+            bai=temp(
                 os.path.join(
                     config["output_folder"],
                     "bams",
@@ -186,7 +186,8 @@ if config["viral_integrated"]:
         threads: 4
         shell:
             """
-            samtools sort --write-index -@ {threads} -o {output[0]} {input.bam}
+            samtools sort -@ {threads} -o {output.bam} {input.bam}
+            samtools index {output.bam}
             """
 
     rule extract_viral:
