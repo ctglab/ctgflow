@@ -77,10 +77,6 @@ wildcard_constraints:
 
 
 
-def get_fastq(wildcards):
-    return {'r1' : units.loc[(wildcards.patient, wildcards.sample_type, wildcards.readgroup), 'fq1'], 
-            'r2' : units.loc[(wildcards.patient, wildcards.sample_type, wildcards.readgroup), 'fq2']}
-
 def get_dedup_input(wildcards):
     rgs = units.loc[(wildcards.patient, wildcards.sample_type), 'readgroup'].unique().tolist()
     bams = [f"{config['output_folder']}bams/{wildcards.patient}.{wildcards.sample_type}.{rg}.merged.bam" for rg in rgs]
@@ -166,6 +162,7 @@ def get_bqsr_output(wildcards):
     intervals = get_intervals()
     recal = [f"{config['output_folder']}qc/{wildcards.patient}.{wildcards.sample_type}.{i}.recal_data.table" for i in intervals]
     return recal
+
 
 def get_gather_bqsr_reports(wildcards):
     intervals = get_intervals()
