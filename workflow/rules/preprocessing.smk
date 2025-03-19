@@ -15,13 +15,7 @@ rule merge_bams:
                 "{patient}.{sample_type}.{readgroup}.aligned.bam",
             ),
         ),
-        ref=branch(
-            config["viral_integrated"],
-            then=os.path.join(
-                config["output_folder"], "reference", "viral_integrated.fasta"
-            ),
-            otherwise=config["resources"]["reference_fasta"],
-        ),
+        ref=config["resources"]["reference_fasta"],
     output:
         temp(
             os.path.join(
@@ -502,7 +496,7 @@ rule split_intervals:
     params:
         N=num_workers,
         d=lambda w, input: os.path.join(
-            Path(input.intervals).parents[0], "split_intervals"
+            Path(input.intervals).parents[0]
         ),
     container:
         config["containers"]["ctgflow_core"]
