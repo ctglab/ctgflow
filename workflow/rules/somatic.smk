@@ -160,7 +160,7 @@ rule merge_vcfs:
             "{patient}.unfiltered.vcf"
         ),
     params:
-        i=lambda wildcards, input: ['-I {vcf}' for vcf in input]
+        i=lambda wildcards, input: [f'-I {vcf}' for vcf in input]
     container: config['containers']['ctgflow_core']
     log:
         os.path.join(
@@ -183,7 +183,7 @@ rule merge_stats:
             "{patient}.unfiltered.vcf.stats"
         ),
     params:
-        i=lambda wildcards, input: ['-stats {s} ' for s in input]
+        i=lambda wildcards, input: [f'-stats {s} ' for s in input]
     container: config['containers']['ctgflow_core']
     log:
         os.path.join(
