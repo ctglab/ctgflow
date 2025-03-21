@@ -30,7 +30,7 @@ rule merge_bams:
     params:
         tmp=config["tmp_dir"],
     conda:
-        "envs/gatk4.yml"
+        "../envs/gatk4.yml"
     container:
         config["containers"]["ctgflow_core"]
     log:
@@ -75,7 +75,7 @@ rule markdups_sort:
         tmp=config["tmp_dir"],
     threads: 4
     conda:
-        "envs/gatk4.yml"
+        "../envs/gatk4.yml"
     container:
         config["containers"]["ctgflow_core"]
     log:
@@ -114,7 +114,7 @@ rule sort_mrkdups:
             )
         ),
     conda:
-        "envs/gatk4.yml"
+        "../envs/gatk4.yml"
     container:
         config["containers"]["ctgflow_core"]
     log:
@@ -171,7 +171,7 @@ rule bqsr:
         ),
         tmp=config["tmp_dir"],
     conda:
-        "envs/gatk4.yml"
+        "../envs/gatk4.yml"
     container:
         config["containers"]["ctgflow_core"]
     log:
@@ -205,7 +205,7 @@ rule GatherBQSRReports:
             config["output_folder"], "qc", "{patient}.{sample_type}.recal_data.table"
         ),
     conda:
-        "envs/gatk4.yml"
+        "../envs/gatk4.yml"
     container:
         config["containers"]["ctgflow_core"]
     log:
@@ -257,7 +257,7 @@ rule apply_bqsr:
     params:
         tmp=config["tmp_dir"],
     conda:
-        "envs/gatk4.yml"
+        "../envs/gatk4.yml"
     container:
         config["containers"]["ctgflow_core"]
     log:
@@ -302,7 +302,7 @@ rule GatherSortedBam:
         tmp=config["tmp_dir"],
         bams=lambda wildcards, input: " ".join([f"-I {f}" for f in input]),
     conda:
-        "envs/gatk4.yml"
+        "../envs/gatk4.yml"
     container:
         config["containers"]["ctgflow_core"]
     log:
@@ -328,7 +328,7 @@ rule sortGather:
             config["output_folder"], "bams", "{patient}.{sample_type}.cram.crai"
         ),
     conda:
-        "envs/gatk4.yml"
+        "../envs/gatk4.yml"
     container:
         config["containers"]["ctgflow_core"]
     log:
@@ -360,7 +360,7 @@ rule split_intervals:
             Path(input.intervals).parents[0]
         ),
     conda:
-        "envs/gatk4.yml"
+        "../envs/gatk4.yml"
     container:
         config["containers"]["ctgflow_core"]
     log:
@@ -380,7 +380,7 @@ rule make_gatk_regions:
     output:
         intlist=regions_gatk,
     conda:
-        "envs/gatk4.yml"
+        "../envs/gatk4.yml"
     container:
         config["containers"]["ctgflow_core"]
     log:
