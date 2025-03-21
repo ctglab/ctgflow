@@ -1,0 +1,26 @@
+container: "docker://continuumio/miniconda3"
+configfile: "config/config.yaml"
+include: "rules/common.smk"
+
+
+rule targets:
+    input:
+        vcf=expand(
+         os.path.join(
+            config['output_folder'],
+            "vcfs",
+            "filtered",
+            "{patient}.filtered.vcf.gz"
+         ), patient=patients
+         ),
+        idx=expand(
+         os.path.join(
+            config['output_folder'],
+            "vcfs",
+            "filtered",
+            "{patient}.filtered.vcf.gz.tbi"
+         ), patient=patients
+         )
+include: "../workflow/rules/alignment.smk"
+include: "../workflow/rules/preprocessing.smk"
+include: "../workflow/rules/somatic.smk"

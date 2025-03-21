@@ -1,0 +1,49 @@
+# One between ["WES", "WGS"]
+sequencing_type: "WES"
+tumor_only: true
+viral_integrated: true
+virus_name: "MCPyV"
+
+# PATH to relevant files
+units: "units.csv"
+patients: "patients.csv"
+
+# DIRECTIVES
+output_folder: "output/"
+tmp_dir: "tmp"
+log_folder: "logs/"
+
+# RESOURCES
+resources:
+  assembly: "GRCh38"
+  genomic_regions: "ref/hg38_chr22_targets.bed"
+  viral_genome: "ref/MPCyV_genome.fa"
+  reference_fasta: "ref/GRCh38_chr22.fasta"
+  dbsnps: "ref/dbsnp_146.hg38.vcf.gz"
+  known-indels: "ref/Homo_sapiens_assembly38.known_indels.vcf.gz"
+  1000g: "ref/1000G_phase1.snps.high_confidence.hg38.vcf.gz"
+  gnomad: "ref/af-only-gnomad.hg38.vcf.gz"
+  contamination: "ref/small_exac_common_3.hg38.vcf.gz"
+  PoN: "ref/1000g_pon_hg38.vcf.gz"
+  vep_cache: ""
+
+
+# CONTAINERS
+containers:
+  ctgflow_core: "docker://danilotat/ctgflow_core"
+  qc: ""
+  deepvariant: "docker://google/deepvariant:1.8.0"
+  deepsomatic: "docker://google/deepsomatic:1.8.0"
+
+# PARAMS
+params:
+  mutect2:
+    num_workers: 10
+    args: --max-population-af 0.05 --genotype-germline-sites --linked-de-bruijn-graph --dont-use-soft-clipped-bases
+    filtering: --max-events-in-region 4 --unique-alt-read-count 2 --min-reads-per-strand 1 --min-allele-fraction 0.001
+  vep:
+    assembly: "GRCh38"
+    threads: 4
+    extra: "--pick --af --check_existing --coding_only --format vcf --vcf --symbol --terms SO --no_intergenic --tsl"
+
+      

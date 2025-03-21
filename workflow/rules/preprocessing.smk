@@ -1,7 +1,10 @@
 rule merge_bams:
     input:
-        unaligned=config["output_folder"]
-        + "bams/{patient}.{sample_type}.{readgroup}.unaligned.bam",
+        unaligned=os.path.join(
+            config["output_folder"],
+            "bams",
+            "{patient}.{sample_type}.{readgroup}.unaligned.bam"
+        ),
         aligned=branch(
             config["viral_integrated"],
             then=os.path.join(
@@ -26,6 +29,8 @@ rule merge_bams:
         ),
     params:
         tmp=config["tmp_dir"],
+    conda:
+        "../envs/gatk4.yml"
     container:
         config["containers"]["ctgflow_core"]
     log:
@@ -69,6 +74,8 @@ rule markdups_sort:
         inbams=lambda wildcards, input: " -I  ".join(input),
         tmp=config["tmp_dir"],
     threads: 4
+    conda:
+        "../envs/gatk4.yml"
     container:
         config["containers"]["ctgflow_core"]
     log:
@@ -106,6 +113,8 @@ rule sort_mrkdups:
                 "{patient}.{sample_type}.sorted.markdup.bam.bai",
             )
         ),
+    conda:
+        "../envs/gatk4.yml"
     container:
         config["containers"]["ctgflow_core"]
     log:
@@ -114,8 +123,8 @@ rule sort_mrkdups:
         ),
     shell:
         """
-        samtools sort -@ 10 -m 2G -O bam -o {output.bam} {input.bam} \
-        && samtools index {output.bam}
+        samtools sort -@ 10 -m 2G -O bam -o {output.bam} {input.bam} ;
+        samtools index {output.bam}
         """
 
 
@@ -161,6 +170,8 @@ rule bqsr:
             ]
         ),
         tmp=config["tmp_dir"],
+    conda:
+        "../envs/gatk4.yml"
     container:
         config["containers"]["ctgflow_core"]
     log:
@@ -193,6 +204,8 @@ rule GatherBQSRReports:
         os.path.join(
             config["output_folder"], "qc", "{patient}.{sample_type}.recal_data.table"
         ),
+    conda:
+        "../envs/gatk4.yml"
     container:
         config["containers"]["ctgflow_core"]
     log:
@@ -243,6 +256,8 @@ rule apply_bqsr:
         ),
     params:
         tmp=config["tmp_dir"],
+    conda:
+        "../envs/gatk4.yml"
     container:
         config["containers"]["ctgflow_core"]
     log:
@@ -286,6 +301,8 @@ rule GatherSortedBam:
     params:
         tmp=config["tmp_dir"],
         bams=lambda wildcards, input: " ".join([f"-I {f}" for f in input]),
+    conda:
+        "../envs/gatk4.yml"
     container:
         config["containers"]["ctgflow_core"]
     log:
@@ -310,6 +327,8 @@ rule sortGather:
         crai=os.path.join(
             config["output_folder"], "bams", "{patient}.{sample_type}.cram.crai"
         ),
+    conda:
+        "../envs/gatk4.yml"
     container:
         config["containers"]["ctgflow_core"]
     log:
@@ -321,164 +340,6 @@ rule sortGather:
         -o {output.cram} {input.bam};
         samtools index {output.cram}
         """
-
-
-# rule coverage:
-#     input:
-#         bam=os.path.join(
-#             config["output_folder"], "bams", "{patient}.{sample_type}.cram"
-#         ),
-#         regions=config["resources"]["genomic_regions"],
-#     output:
-#         os.path.join(
-#             config["output_folder"],
-#             "qc",
-#             "{patient}.{sample_type}.mosdepth.region.dist.txt",
-#         ),
-#         os.path.join(
-#             config["output_folder"], "qc", "{patient}.{sample_type}.regions.bed.gz"
-#         ),
-#         os.path.join(
-#             config["output_folder"],
-#             "qc",
-#             "{patient}.{sample_type}.mosdepth.global.dist.txt",
-#         ),
-#         os.path.join(
-#             config["output_folder"],
-#             "qc",
-#             "{patient}.{sample_type}.mosdepth.summary.txt",
-#         ),
-#     threads: 4
-#     params:
-#         by=lambda wildcards, input: "500" if seqtype == "WGS" else input.regions,
-#     container:
-#         config["containers"]["ctgflow_core"]
-#     log:
-#         os.path.join(config["log_folder"], "coverage", "{patient}.{sample_type}.log"),
-#     shell:
-#         """
-#         mosdepth --by {params.by} -t {threads} \
-#         qc/{wildcards.patient}.{wildcards.sample_type} \
-#         {input.bam}
-#         """
-
-
-# rule stats:
-#     input:
-#         os.path.join(config["output_folder"], "bams", "{patient}.{sample_type}.bam"),
-#     output:
-#         os.path.join(config["output_folder"], "qc", "{patient}.{sample_type}.flagstat"),
-#     container:
-#         config["containers"]["ctgflow_core"]
-#     log:
-#         os.path.join(
-#             config["log_folder"], "samtools_stats", "{patient}.{sample_type}.log"
-#         ),
-#     shell:
-#         """
-#         samtools flagstat {input} > {output}
-#         """
-
-
-# rule fastqc:
-#     input:
-#         os.path.join(config["output_folder"], "bams", "{patient}.{sample_type}.bam"),
-#     output:
-#         html=os.path.join(
-#             config["output_folder"],
-#             "qc",
-#             "fastqc",
-#             "{patient}.{sample_type}_fastqc.html",
-#         ),
-#         zipdata=os.path.join(
-#             config["output_folder"],
-#             "qc",
-#             "fastqc",
-#             "{patient}.{sample_type}_fastqc.zip",
-#         ),
-#     container:
-#         config["containers"]["ctgflow_core"]
-#     log:
-#         os.path.join(config["log_folder"], "fastqc", "{patient}.{sample_type}.log"),
-#     shell:
-#         """
-#         tmpdir=qc/fastqc/{wildcards.patient}-{wildcards.sample_type}.tmp 
-#         mkdir $tmpdir 
-#         fastqc --outdir $tmpdir {input} 
-#         mv $tmpdir/{wildcards.patient}.{wildcards.sample_type}_fastqc.html {output.html} 
-#         mv $tmpdir/{wildcards.patient}.{wildcards.sample_type}_fastqc.zip {output.zipdata} 
-#         rm -r $tmpdir
-#         """
-
-
-# rule multiqc:
-#     input:
-#         expand(
-#             os.path.join(
-#                 config["output_folder"],
-#                 "qc",
-#                 "fastqc",
-#                 "{patient}.{sample_type}_fastqc.zip",
-#             ),
-#             patient=patients,
-#             sample_type=sample_types,
-#         ),
-#         expand(
-#             os.path.join(
-#                 config["output_folder"],
-#                 "qc",
-#                 "{patient}.{sample_type}.mosdepth.region.dist.txt",
-#             ),
-#             patient=patients,
-#             sample_type=sample_types,
-#         ),
-#         expand(
-#             os.path.join(
-#                 config["output_folder"], "qc", "{patient}.{sample_type}.flagstat"
-#             ),
-#             patient=patients,
-#             sample_type=sample_types,
-#         ),
-#     output:
-#         os.path.join(config["output_folder"], "qc", "multiqc_report.html"),
-#     container:
-#         config["containers"]["ctgflow_core"]
-#     log:
-#         os.path.join(config["log_folder"], "multiqc", "multiqc.log"),
-#     wrapper:
-#         "v5.9.0/bio/multiqc"
-
-
-# rule seq_depths:
-#     input:
-#         expand(
-#             config["output_folder"]
-#             + "qc/{patient}.{sample_type}.mosdepth.summary.txt",
-#             patient=patients,
-#             sample_type=sample_types,
-#         ),
-#     output:
-#         config["output_folder"] + "qc/depths.csv",
-#     container:
-#         config["containers"]["ctgflow_core"]
-#     log:
-#         config["log_folder"] + "seq_depths" + "/" + "depths_aggregate.log",
-#     script:
-#         "../scripts/gather_depths.py"
-
-
-# rule plot_depths:
-#     input:
-#         config["output_folder"] + "qc/depths.csv",
-#     output:
-#         config["output_folder"] + "qc/depths.svg",
-#     container:
-#         config["containers"]["ctgflow_core"]
-#     log:
-#         config["log_folder"] + "plot_depths" + "/" + "plot_depths.log",
-#     script:
-#         "../scripts/plot_depth.R"
-
 
 rule split_intervals:
     input:
@@ -498,6 +359,8 @@ rule split_intervals:
         d=lambda w, input: os.path.join(
             Path(input.intervals).parents[0]
         ),
+    conda:
+        "../envs/gatk4.yml"
     container:
         config["containers"]["ctgflow_core"]
     log:
@@ -516,6 +379,8 @@ rule make_gatk_regions:
         d=lambda x: config["resources"]["reference_fasta"].replace(".fasta", ".dict"),
     output:
         intlist=regions_gatk,
+    conda:
+        "../envs/gatk4.yml"
     container:
         config["containers"]["ctgflow_core"]
     log:
