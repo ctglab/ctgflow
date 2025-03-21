@@ -197,6 +197,12 @@ if config["viral_integrated"]:
             "envs/gatk4.yml"
         container:
             config["containers"]["ctgflow_core"]
+        log:
+            os.path.join(
+                config["log_folder"],
+                "sort_unfiltered",
+                "{patient}.{sample_type}.{readgroup}.log"
+            ),
         threads: 4
         shell:
             """
