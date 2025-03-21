@@ -44,6 +44,8 @@ rule mutect2:
         normal_input=lambda wildcards, input: ' ' if tumor_only else f"-I {input.normal}",
         pon=f"--panel-of-normals {config['resources']['PoN']} ",
         extra=config['params']['mutect2']['args'],
+    conda:
+        "envs/gatk4.yml"
     container: config['containers']['ctgflow_core']
     log:
         os.path.join(
@@ -75,6 +77,8 @@ rule orientation_bias:
         )
     params:
         i=lambda wildcards, input: [f'-I {d}' for d in input]
+    conda:
+        "envs/gatk4.yml"
     container: config['containers']['ctgflow_core']
     log:
         os.path.join(
@@ -110,6 +114,8 @@ rule pileup_summaries:
             "qc",
             "{patient}_{sample_type}_pileupsummaries.table"
         )
+    conda:
+        "envs/gatk4.yml"
     container: config['containers']['ctgflow_core']
     log:
         os.path.join(
@@ -136,6 +142,8 @@ rule calculate_contamination:
         )
     params:
         matched=lambda wildcards, input:'' if tumor_only else '-matched {input.normal}',
+    conda:
+        "envs/gatk4.yml"
     container: config['containers']['ctgflow_core']
     log:
         os.path.join(
@@ -161,6 +169,8 @@ rule merge_vcfs:
         ),
     params:
         i=lambda wildcards, input: [f'-I {vcf}' for vcf in input]
+    conda:
+        "envs/gatk4.yml"
     container: config['containers']['ctgflow_core']
     log:
         os.path.join(
@@ -184,6 +194,8 @@ rule merge_stats:
         ),
     params:
         i=lambda wildcards, input: [f'-stats {s} ' for s in input]
+    conda:
+        "envs/gatk4.yml"
     container: config['containers']['ctgflow_core']
     log:
         os.path.join(
@@ -249,6 +261,8 @@ rule filter_calls:
         ),
     params:
         extra=config['params']['mutect2']['filtering']
+    conda:
+        "envs/gatk4.yml"
     container: config['containers']['ctgflow_core']
     log:
         os.path.join(
@@ -281,6 +295,8 @@ rule compress_calls:
                 "filtered/{patient}.withFilters.vcf.gz"
             )
         )
+    conda:
+        "envs/gatk4.yml"
     container: config["containers"]["ctgflow_core"],
     log:
         os.path.join(
@@ -300,23 +316,28 @@ rule select_calls:
         vcf=os.path.join(
             config['output_folder'],
             "vcfs",
-            "filtered/{patient}.withFilters.vcf.gz"
+            "filtered",
+            "{patient}.withFilters.vcf.gz",
         ),
     output:
         vcf=temp(
             os.path.join(
                 config['output_folder'],
                 "vcfs",
-                "filtered/{patient}.filtered.vcf.gz"
+                "filtered",
+                "{patient}.filtered.vcf.gz"
             )
         ),
         idx=temp(
             os.path.join(
                 config['output_folder'],
                 "vcfs",
-                "filtered/{patient}.filtered.vcf.gz.tbi"
+                "filtered",
+                "{patient}.filtered.vcf.gz.tbi"
             )
         ),
+    conda:
+        "envs/gatk4.yml"
     container:
         config['containers']['ctgflow_core']
     log:
@@ -337,12 +358,14 @@ rule vep:
         vcf=os.path.join(
             config['output_folder'],
             "vcfs",
-            "filtered/{patient}.filtered.vcf.gz"
+            "filtered",
+            "{patient}.filtered.vcf.gz"
         ),
         idx=os.path.join(
             config['output_folder'],
             "vcfs",
-            "filtered/{patient}.filtered.vcf.gz.tbi"
+            "filtered",
+            "{patient}.filtered.vcf.gz.tbi"
         ),
         ref=branch(
             config['viral_integrated'],
@@ -365,6 +388,8 @@ rule vep:
     params:
         extra=config['params']['vep']['extra'],
         assembly=config['params']['vep']['assembly'],
+    conda:
+        "envs/vep.yml"
     container:
         config['containers']['ctgflow_core']
     log:
@@ -398,6 +423,8 @@ rule compress_vcf:
             "vcfs",
             "{patient}.vep.vcf.gz.tbi"
         ),
+    conda:
+        "envs/gatk4.yml"
     container:
         config['containers']['ctgflow_core']
     log:

@@ -25,6 +25,8 @@ rule combine_fqs:
     params:
         pl=get_platform,
         tmp=config['tmp_dir'],
+    conda:
+        "envs/gatk4.yml"
     container:
         config["containers"]["ctgflow_core"]
     log:
@@ -54,6 +56,11 @@ if config["viral_integrated"]:
             fasta=os.path.join(
                 config["output_folder"], "reference", "viral_integrated.fasta"
             ),
+            fasta_dict=os.path.join(
+                config["output_folder"], "reference", "viral_integrated.dict"
+            )
+        conda:
+            "envs/gatk4.yml"
         container:
             config["containers"]["ctgflow_core"]
         params:
@@ -65,6 +72,7 @@ if config["viral_integrated"]:
             cat {input.ref} > {output.fasta}
             echo ">{params.virus_name}" >> {output.fasta}
             sed -n '2,$p' {input.viral} >> {output.fasta}
+            gatk CreateSequenceDictionary -R {output.fasta}
             """
 
 
@@ -93,6 +101,8 @@ rule bwa_index:
                 for suf in file_suffixes
             ],
         ),
+    conda:
+        "envs/gatk4.yml"
     container:
         config["containers"]["ctgflow_core"]
     log:
@@ -140,6 +150,8 @@ rule bwa:
             )
         ),
     threads: 8
+    conda:
+        "envs/gatk4.yml"
     container:
         config["containers"]["ctgflow_core"]
     log:
@@ -181,6 +193,8 @@ if config["viral_integrated"]:
                     "{patient}.{sample_type}.{readgroup}.sorted.bam.bai",
                 )
             ),
+        conda:
+            "envs/gatk4.yml"
         container:
             config["containers"]["ctgflow_core"]
         threads: 4
@@ -222,6 +236,8 @@ if config["viral_integrated"]:
             ),
         params:
             virus_name=config["virus_name"],
+        conda:
+            "envs/gatk4.yml"
         container:
             config["containers"]["ctgflow_core"]
         log:

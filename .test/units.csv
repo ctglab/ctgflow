@@ -1,0 +1,2 @@
+patient,sample,platform,readgroup,fq1,fq2,seqtype
+pat01,tumor,ILLUMINA,data/pat01_1.fastq.gz,data/pat01_2.fastq.gz,WES

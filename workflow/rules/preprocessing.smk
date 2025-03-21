@@ -26,6 +26,8 @@ rule merge_bams:
         ),
     params:
         tmp=config["tmp_dir"],
+    conda:
+        "envs/gatk4.yml"
     container:
         config["containers"]["ctgflow_core"]
     log:
@@ -69,6 +71,8 @@ rule markdups_sort:
         inbams=lambda wildcards, input: " -I  ".join(input),
         tmp=config["tmp_dir"],
     threads: 4
+    conda:
+        "envs/gatk4.yml"
     container:
         config["containers"]["ctgflow_core"]
     log:
@@ -106,6 +110,8 @@ rule sort_mrkdups:
                 "{patient}.{sample_type}.sorted.markdup.bam.bai",
             )
         ),
+    conda:
+        "envs/gatk4.yml"
     container:
         config["containers"]["ctgflow_core"]
     log:
@@ -114,8 +120,8 @@ rule sort_mrkdups:
         ),
     shell:
         """
-        samtools sort -@ 10 -m 2G -O bam -o {output.bam} {input.bam} \
-        && samtools index {output.bam}
+        samtools sort -@ 10 -m 2G -O bam -o {output.bam} {input.bam} ;
+        samtools index {output.bam}
         """
 
 
@@ -161,6 +167,8 @@ rule bqsr:
             ]
         ),
         tmp=config["tmp_dir"],
+    conda:
+        "envs/gatk4.yml"
     container:
         config["containers"]["ctgflow_core"]
     log:
@@ -193,6 +201,8 @@ rule GatherBQSRReports:
         os.path.join(
             config["output_folder"], "qc", "{patient}.{sample_type}.recal_data.table"
         ),
+    conda:
+        "envs/gatk4.yml"
     container:
         config["containers"]["ctgflow_core"]
     log:
@@ -243,6 +253,8 @@ rule apply_bqsr:
         ),
     params:
         tmp=config["tmp_dir"],
+    conda:
+        "envs/gatk4.yml"
     container:
         config["containers"]["ctgflow_core"]
     log:
@@ -286,6 +298,8 @@ rule GatherSortedBam:
     params:
         tmp=config["tmp_dir"],
         bams=lambda wildcards, input: " ".join([f"-I {f}" for f in input]),
+    conda:
+        "envs/gatk4.yml"
     container:
         config["containers"]["ctgflow_core"]
     log:
@@ -310,6 +324,8 @@ rule sortGather:
         crai=os.path.join(
             config["output_folder"], "bams", "{patient}.{sample_type}.cram.crai"
         ),
+    conda:
+        "envs/gatk4.yml"
     container:
         config["containers"]["ctgflow_core"]
     log:
@@ -498,6 +514,8 @@ rule split_intervals:
         d=lambda w, input: os.path.join(
             Path(input.intervals).parents[0]
         ),
+    conda:
+        "envs/gatk4.yml"
     container:
         config["containers"]["ctgflow_core"]
     log:
@@ -516,6 +534,8 @@ rule make_gatk_regions:
         d=lambda x: config["resources"]["reference_fasta"].replace(".fasta", ".dict"),
     output:
         intlist=regions_gatk,
+    conda:
+        "envs/gatk4.yml"
     container:
         config["containers"]["ctgflow_core"]
     log:
