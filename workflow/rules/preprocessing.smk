@@ -1,7 +1,10 @@
 rule merge_bams:
     input:
-        unaligned=config["output_folder"]
-        + "bams/{patient}.{sample_type}.{readgroup}.unaligned.bam",
+        unaligned=os.path.join(
+            config["output_folder"],
+            "bams",
+            "{patient}.{sample_type}.{readgroup}.unaligned.bam"
+        ),
         aligned=branch(
             config["viral_integrated"],
             then=os.path.join(
