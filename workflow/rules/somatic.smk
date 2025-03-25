@@ -389,7 +389,7 @@ rule vep:
         extra=config['params']['vep']['extra'],
         assembly=config['params']['vep']['assembly'],
     conda:
-        "envs/vep.yml"
+        "../envs/vep.yml"
     container:
         config['containers']['ctgflow_core']
     log:
