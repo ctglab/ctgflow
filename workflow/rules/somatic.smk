@@ -45,7 +45,7 @@ rule mutect2:
         pon=f"--panel-of-normals {config['resources']['PoN']} ",
         extra=config['params']['mutect2']['args'],
     conda:
-        "envs/gatk4.yml"
+        "../envs/gatk4.yml"
     container: config['containers']['ctgflow_core']
     log:
         os.path.join(
@@ -78,7 +78,7 @@ rule orientation_bias:
     params:
         i=lambda wildcards, input: [f'-I {d}' for d in input]
     conda:
-        "envs/gatk4.yml"
+        "../envs/gatk4.yml"
     container: config['containers']['ctgflow_core']
     log:
         os.path.join(
@@ -115,7 +115,7 @@ rule pileup_summaries:
             "{patient}_{sample_type}_pileupsummaries.table"
         )
     conda:
-        "envs/gatk4.yml"
+        "../envs/gatk4.yml"
     container: config['containers']['ctgflow_core']
     log:
         os.path.join(
@@ -143,7 +143,7 @@ rule calculate_contamination:
     params:
         matched=lambda wildcards, input:'' if tumor_only else '-matched {input.normal}',
     conda:
-        "envs/gatk4.yml"
+        "../envs/gatk4.yml"
     container: config['containers']['ctgflow_core']
     log:
         os.path.join(
@@ -170,7 +170,7 @@ rule merge_vcfs:
     params:
         i=lambda wildcards, input: [f'-I {vcf}' for vcf in input]
     conda:
-        "envs/gatk4.yml"
+        "../envs/gatk4.yml"
     container: config['containers']['ctgflow_core']
     log:
         os.path.join(
@@ -195,7 +195,7 @@ rule merge_stats:
     params:
         i=lambda wildcards, input: [f'-stats {s} ' for s in input]
     conda:
-        "envs/gatk4.yml"
+        "../envs/gatk4.yml"
     container: config['containers']['ctgflow_core']
     log:
         os.path.join(
@@ -262,7 +262,7 @@ rule filter_calls:
     params:
         extra=config['params']['mutect2']['filtering']
     conda:
-        "envs/gatk4.yml"
+        "../envs/gatk4.yml"
     container: config['containers']['ctgflow_core']
     log:
         os.path.join(
@@ -296,7 +296,7 @@ rule compress_calls:
             )
         )
     conda:
-        "envs/gatk4.yml"
+        "../envs/gatk4.yml"
     container: config["containers"]["ctgflow_core"],
     log:
         os.path.join(
@@ -337,7 +337,7 @@ rule select_calls:
             )
         ),
     conda:
-        "envs/gatk4.yml"
+        "../envs/gatk4.yml"
     container:
         config['containers']['ctgflow_core']
     log:
@@ -424,7 +424,7 @@ rule compress_vcf:
             "{patient}.vep.vcf.gz.tbi"
         ),
     conda:
-        "envs/gatk4.yml"
+        "../envs/gatk4.yml"
     container:
         config['containers']['ctgflow_core']
     log:

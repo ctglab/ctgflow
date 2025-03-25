@@ -26,7 +26,7 @@ rule combine_fqs:
         pl=get_platform,
         tmp=config['tmp_dir'],
     conda:
-        "envs/gatk4.yml"
+        "../envs/gatk4.yml"
     container:
         config["containers"]["ctgflow_core"]
     log:
@@ -60,7 +60,7 @@ if config["viral_integrated"]:
                 config["output_folder"], "reference", "viral_integrated.dict"
             )
         conda:
-            "envs/gatk4.yml"
+            "../envs/gatk4.yml"
         container:
             config["containers"]["ctgflow_core"]
         params:
@@ -102,7 +102,7 @@ rule bwa_index:
             ],
         ),
     conda:
-        "envs/gatk4.yml"
+        "../envs/gatk4.yml"
     container:
         config["containers"]["ctgflow_core"]
     log:
@@ -151,7 +151,7 @@ rule bwa:
         ),
     threads: 8
     conda:
-        "envs/gatk4.yml"
+        "../envs/gatk4.yml"
     container:
         config["containers"]["ctgflow_core"]
     log:
@@ -194,7 +194,7 @@ if config["viral_integrated"]:
                 )
             ),
         conda:
-            "envs/gatk4.yml"
+            "../envs/gatk4.yml"
         container:
             config["containers"]["ctgflow_core"]
         threads: 4
@@ -237,7 +237,7 @@ if config["viral_integrated"]:
         params:
             virus_name=config["virus_name"],
         conda:
-            "envs/gatk4.yml"
+            "../envs/gatk4.yml"
         container:
             config["containers"]["ctgflow_core"]
         log:
