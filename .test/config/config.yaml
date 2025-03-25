@@ -37,6 +37,8 @@ containers:
 
 # PARAMS
 params:
+  gatk:
+    RAM: 1000
   mutect2:
     num_workers: 10
     args: --max-population-af 0.05 --genotype-germline-sites --linked-de-bruijn-graph --dont-use-soft-clipped-bases
