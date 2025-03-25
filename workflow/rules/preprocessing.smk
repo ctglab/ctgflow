@@ -342,7 +342,7 @@ rule sortGather:
         os.path.join(config["log_folder"], "sortGather", "{patient}.{sample_type}.log"),
     shell:
         """
-        samtools sort -@ 10 -m 2G -O cram \
+        samtools sort -O cram \
         -T {wildcards.patient}.{wildcards.sample_type} \
         -o {output.cram} {input.bam};
         samtools index {output.cram}
