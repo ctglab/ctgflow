@@ -115,7 +115,7 @@ rule sort_mrkdups:
         ),
     shell:
         """
-        samtools sort -@ 10 -m 2G -O bam -o {output.bam} {input.bam} ;
+        samtools sort -O bam -o {output.bam} {input.bam} ;
         samtools index {output.bam}
         """
 
