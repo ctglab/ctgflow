@@ -40,7 +40,7 @@ params:
   gatk:
     RAM: 1000
   mutect2:
-    num_workers: 10
+    num_workers: 4
     args: --max-population-af 0.05 --genotype-germline-sites --linked-de-bruijn-graph --dont-use-soft-clipped-bases
     filtering: --max-events-in-region 4 --unique-alt-read-count 2 --min-reads-per-strand 1 --min-allele-fraction 0.001
   vep:
