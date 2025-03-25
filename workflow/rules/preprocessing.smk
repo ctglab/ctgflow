@@ -123,7 +123,7 @@ rule sort_mrkdups:
         ),
     shell:
         """
-        samtools sort -@ 10 -m 2G -O bam -o {output.bam} {input.bam} ;
+        samtools sort -O bam -o {output.bam} {input.bam} ;
         samtools index {output.bam}
         """
 
@@ -170,6 +170,7 @@ rule bqsr:
             ]
         ),
         tmp=config["tmp_dir"],
+        ram=config["params"]["gatk"]["RAM"],
     conda:
         "../envs/gatk4.yml"
     container:
@@ -180,7 +181,8 @@ rule bqsr:
         ),
     shell:
         """
-        gatk --java-options "-XX:GCTimeLimit=50 -XX:GCHeapFreeLimit=10 -Xms4000m" \
+        gatk --java-options "-XX:GCTimeLimit=50 -XX:GCHeapFreeLimit=10 \
+        -Xms{params.ram}m" \
         BaseRecalibrator \
         -I {input.bam} -R {input.ref} \
         --use-original-qualities \
@@ -227,6 +229,11 @@ rule apply_bqsr:
             config["output_folder"],
             "bams",
             "{patient}.{sample_type}.sorted.markdup.bam",
+        ),
+        bai=os.path.join(
+            config["output_folder"],
+            "bams",
+            "{patient}.{sample_type}.sorted.markdup.bam.bai",
         ),
         recal=os.path.join(
             config["output_folder"],
@@ -335,7 +342,7 @@ rule sortGather:
         os.path.join(config["log_folder"], "sortGather", "{patient}.{sample_type}.log"),
     shell:
         """
-        samtools sort -@ 10 -m 2G -O cram \
+        samtools sort -O cram \
         -T {wildcards.patient}.{wildcards.sample_type} \
         -o {output.cram} {input.bam};
         samtools index {output.cram}
