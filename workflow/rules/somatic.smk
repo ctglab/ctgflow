@@ -1,15 +1,7 @@
 rule mutect2:
     input:
         unpack(get_mutect2_input),
-        ref=branch(
-            config['viral_integrated'],
-            then=os.path.join(
-                config['output_folder'],
-                'reference',
-                'viral_integrated.fasta'
-            ),
-            otherwise=config['resources']['reference_fasta']
-        ),
+        ref=config['resources']['reference_fasta'],
         gnomad=config['resources']['gnomad'],
         interval=os.path.join(
             config['output_folder'],
@@ -98,15 +90,7 @@ rule pileup_summaries:
             "bams",
             "{patient}.{sample_type}.cram"
         ),
-        ref=branch(
-            config['viral_integrated'],
-            then=os.path.join(
-                config['output_folder'],
-                'reference',
-                'viral_integrated.fasta'
-            ),
-            otherwise=config['resources']['reference_fasta']
-        ),
+        ref=config['resources']['reference_fasta'],
         germ_res=config['resources']['contamination']
     output:
         os.path.join(
@@ -215,15 +199,7 @@ rule filter_calls:
             "vcfs",
             "{patient}.unfiltered.vcf"
         ),
-        ref=branch(
-            config['viral_integrated'],
-            then=os.path.join(
-                config['output_folder'],
-                'reference',
-                'viral_integrated.fasta'
-            ),
-            otherwise=config['resources']['reference_fasta']
-        ),
+        ref=config['resources']['reference_fasta'],
         contamination=os.path.join(
             config['output_folder'],
             "qc",
@@ -367,15 +343,7 @@ rule vep:
             "filtered",
             "{patient}.filtered.vcf.gz.tbi"
         ),
-        ref=branch(
-            config['viral_integrated'],
-            then=os.path.join(
-                config['output_folder'],
-                'reference',
-                'viral_integrated.fasta'
-            ),
-            otherwise=config['resources']['reference_fasta']
-        ),
+        ref=config['resources']['reference_fasta'],
         vep_cache=config['resources']['vep_cache'],
     output:
         vcf=temp(

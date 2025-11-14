@@ -5,19 +5,11 @@ rule merge_bams:
             "bams",
             "{patient}.{sample_type}.{readgroup}.unaligned.bam"
         ),
-        aligned=branch(
-            config["viral_integrated"],
-            then=os.path.join(
-                config["output_folder"],
-                "bams",
-                "{patient}.{sample_type}.{readgroup}.non_viral.bam",
-            ),
-            otherwise=os.path.join(
+        aligned=os.path.join(
                 config["output_folder"],
                 "bams",
                 "{patient}.{sample_type}.{readgroup}.aligned.bam",
             ),
-        ),
         ref=config["resources"]["reference_fasta"],
     output:
         temp(
@@ -147,13 +139,7 @@ rule bqsr:
             "interval-files",
             "{interval}-scattered.interval_list",
         ),
-        ref=branch(
-            config["viral_integrated"],
-            then=os.path.join(
-                config["output_folder"], "reference", "viral_integrated.fasta"
-            ),
-            otherwise=config["resources"]["reference_fasta"],
-        ),
+        ref=config["resources"]["reference_fasta"],
     output:
         recal=temp(
             os.path.join(
@@ -238,7 +224,7 @@ rule apply_bqsr:
         recal=os.path.join(
             config["output_folder"],
             "qc",
-            "{patient}.{sample_type}.{interval}.recal_data.table",
+            "{patient}.{sample_type}.recal_data.table",
         ),
         interval=os.path.join(
             config["output_folder"],
@@ -261,6 +247,8 @@ rule apply_bqsr:
                 "{patient}.{sample_type}.{interval}.bai",
             )
         ),
+    wildcard_constraints:
+        interval=r"\d{4}"
     params:
         tmp=config["tmp_dir"],
     conda:
