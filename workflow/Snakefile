@@ -19,3 +19,4 @@ rule targets:
 include: "rules/alignment.smk"
 include: "rules/preprocessing.smk"
 include: "rules/somatic.smk"
+include: "rules/deepsomatic.smk"
