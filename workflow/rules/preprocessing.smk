@@ -185,7 +185,7 @@ rule GatherBQSRReports:
                 config["output_folder"],
                 "qc",
                 f"{wc.patient}.{wc.sample_type}.{interval}.recal_data.table",
-            )'
+            )}'
             for interval in get_intervals()
         ],
     output:
