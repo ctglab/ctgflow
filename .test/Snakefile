@@ -21,13 +21,6 @@ rule targets:
             "{patient}.filtered.vcf.gz.tbi"
          ), patient=patients
          ),
-         deepsomatic_vcf=expand(
-            os.path.join(
-                config['output_folder'],
-                "vcfs",
-                "{patient}.deepsomatic.vcf.gz"
-            ), patient=patients
-         ),
 
 include: "../workflow/rules/alignment.smk"
 include: "../workflow/rules/preprocessing.smk"
