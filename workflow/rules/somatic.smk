@@ -16,6 +16,13 @@ rule mutect2:
                 "{patient}.{interval}.unfiltered.vcf"
             )
         ),
+        idx=temp(
+            os.path.join(
+                config['output_folder'],
+                "vcfs",
+                "{patient}.{interval}.unfiltered.vcf.idx"
+            )
+        ),
         stats=temp(
             os.path.join(
                 config['output_folder'],
@@ -344,7 +351,11 @@ rule vep:
             "{patient}.filtered.vcf.gz.tbi"
         ),
         ref=config['resources']['reference_fasta'],
-        vep_cache=config['resources']['vep_cache'],
+        vep_cache=branch(
+            running_mode == 'CI',
+            "",
+            config['resources']['vep_cache']
+            ),
     output:
         vcf=temp(
             os.path.join(
@@ -354,6 +365,7 @@ rule vep:
             )
         ),
     params:
+        cache=lambda wc, input: "--database" if config['execution_mode'] == 'CI' else f"--offline --cache --dir_cache {os.path.dirname(input.vep_cache)}",
         extra=config['params']['vep']['extra'],
         assembly=config['params']['vep']['assembly'],
     conda:
@@ -369,7 +381,7 @@ rule vep:
     shell:
         """
         vep --input_file {input.vcf} --output_file {output.vcf} \
-            --fasta {input.ref} --cache --dir {input.vep_cache} \
+            --fasta {input.ref} {params.cache} --dir {input.vep_cache} \
             --assembly {params.assembly} {params.extra}
         """
 

@@ -1,27 +1,34 @@
 #@TODO:
 # This rule should be adapted to work in either tumor-only or tumor-normal mode
+def get_deepsomatic_input(wildcards):
+    files = {}
+    files['cram'] = os.path.join(
+        config['output_folder'],
+        "bams",
+        f"{wildcards.patient}.tumor.cram")
+    files['crai'] = os.path.join(
+        config['output_folder'],
+        "bams",
+        f"{wildcards.patient}.tumor.cram.crai")
+    return files
+
 rule deepsomatic:
     input:
-        config['resources']['reference_fasta'],
-        cram=os.path.join(
-            config["output_folder"], "bams", "{patient}.{sample_type}.cram"
-        ),
-        crai=os.path.join(
-            config["output_folder"], "bams", "{patient}.{sample_type}.cram.crai"
-        ),
+        unpack(get_deepsomatic_input),
+        ref=config['resources']['reference_fasta'],
         regions=regions_bed,
     output:
         vcf=os.path.join(
-                config['output_folder'],
-                "vcfs",
-                "{patient}.deepsomatic.vcf.gz"
+            config['output_folder'],
+            "vcfs",
+            "{patient}.deepsomatic.vcf.gz"
             ),
     params:
         tumor="{patient}.tumor",
         logging_dir=os.path.join(
             config['log_folder'],
             "deepsomatic",
-            "{patient}"
+            "{patient}_log"
         ),
         intermediate_results_dir=os.path.join(
             config['output_folder'],

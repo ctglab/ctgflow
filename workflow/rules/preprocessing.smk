@@ -181,17 +181,19 @@ rule bqsr:
 rule GatherBQSRReports:
     input:
         lambda wc: [
-            f'-I {os.path.join(
+            os.path.join(
                 config["output_folder"],
                 "qc",
                 f"{wc.patient}.{wc.sample_type}.{interval}.recal_data.table",
-            )}'
+            )
             for interval in get_intervals()
         ],
     output:
         os.path.join(
             config["output_folder"], "qc", "{patient}.{sample_type}.recal_data.table"
         ),
+    params:
+        inputs=lambda wildcards, input: " ".join([f"-I {f}" for f in input]),
     conda:
         "../envs/gatk4.yml"
     container:
@@ -204,7 +206,7 @@ rule GatherBQSRReports:
         """
         gatk --java-options "-Xms3000m" \
             GatherBQSRReports \
-            {input} \
+            {params.inputs} \
             -O {output}
         """
 
