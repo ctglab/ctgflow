@@ -1,15 +1,7 @@
 rule mutect2:
     input:
         unpack(get_mutect2_input),
-        ref=branch(
-            config['viral_integrated'],
-            then=os.path.join(
-                config['output_folder'],
-                'reference',
-                'viral_integrated.fasta'
-            ),
-            otherwise=config['resources']['reference_fasta']
-        ),
+        ref=config['resources']['reference_fasta'],
         gnomad=config['resources']['gnomad'],
         interval=os.path.join(
             config['output_folder'],
@@ -22,6 +14,13 @@ rule mutect2:
                 config['output_folder'],
                 "vcfs",
                 "{patient}.{interval}.unfiltered.vcf"
+            )
+        ),
+        idx=temp(
+            os.path.join(
+                config['output_folder'],
+                "vcfs",
+                "{patient}.{interval}.unfiltered.vcf.idx"
             )
         ),
         stats=temp(
@@ -98,15 +97,7 @@ rule pileup_summaries:
             "bams",
             "{patient}.{sample_type}.cram"
         ),
-        ref=branch(
-            config['viral_integrated'],
-            then=os.path.join(
-                config['output_folder'],
-                'reference',
-                'viral_integrated.fasta'
-            ),
-            otherwise=config['resources']['reference_fasta']
-        ),
+        ref=config['resources']['reference_fasta'],
         germ_res=config['resources']['contamination']
     output:
         os.path.join(
@@ -215,15 +206,7 @@ rule filter_calls:
             "vcfs",
             "{patient}.unfiltered.vcf"
         ),
-        ref=branch(
-            config['viral_integrated'],
-            then=os.path.join(
-                config['output_folder'],
-                'reference',
-                'viral_integrated.fasta'
-            ),
-            otherwise=config['resources']['reference_fasta']
-        ),
+        ref=config['resources']['reference_fasta'],
         contamination=os.path.join(
             config['output_folder'],
             "qc",
@@ -367,16 +350,12 @@ rule vep:
             "filtered",
             "{patient}.filtered.vcf.gz.tbi"
         ),
-        ref=branch(
-            config['viral_integrated'],
-            then=os.path.join(
-                config['output_folder'],
-                'reference',
-                'viral_integrated.fasta'
+        ref=config['resources']['reference_fasta'],
+        vep_cache=branch(
+            running_mode == 'CI',
+            "",
+            config['resources']['vep_cache']
             ),
-            otherwise=config['resources']['reference_fasta']
-        ),
-        vep_cache=config['resources']['vep_cache'],
     output:
         vcf=temp(
             os.path.join(
@@ -386,6 +365,7 @@ rule vep:
             )
         ),
     params:
+        cache=lambda wc, input: "--database" if config['execution_mode'] == 'CI' else f"--offline --cache --dir_cache {os.path.dirname(input.vep_cache)}",
         extra=config['params']['vep']['extra'],
         assembly=config['params']['vep']['assembly'],
     conda:
@@ -401,7 +381,7 @@ rule vep:
     shell:
         """
         vep --input_file {input.vcf} --output_file {output.vcf} \
-            --fasta {input.ref} --cache --dir {input.vep_cache} \
+            --fasta {input.ref} {params.cache} --dir {input.vep_cache} \
             --assembly {params.assembly} {params.extra}
         """
 

@@ -37,6 +37,10 @@ containers:
 
 # PARAMS
 params:
+  deepsomatic:
+    threads: 4
+    extra: ""
+    model_type: "WES"
   gatk:
     RAM: 1000
   mutect2:

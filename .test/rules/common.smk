@@ -75,7 +75,18 @@ wildcard_constraints:
     sample_type="|".join(sample_types)
 
 
-
+def get_deepsomatic_input(wildcards):
+    files = {}
+    files['cram'] = os.path.join(
+        config['output_folder'],
+        "bams",
+        f"{wildcards.patient}.tumor.cram")
+    files['crai'] = os.path.join(
+        config['output_folder'],
+        "bams",
+        f"{wildcards.patient}.tumor.cram.crai")
+    return files
+    
 def get_dedup_input(wildcards):
     rgs = units.loc[(wildcards.patient, wildcards.sample_type), 'readgroup'].unique().tolist()
     bams = [f"{config['output_folder']}bams/{wildcards.patient}.{wildcards.sample_type}.{rg}.merged.bam" for rg in rgs]
