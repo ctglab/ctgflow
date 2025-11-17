@@ -1,17 +1,5 @@
 #@TODO:
 # This rule should be adapted to work in either tumor-only or tumor-normal mode
-def get_deepsomatic_input(wildcards):
-    files = {}
-    files['cram'] = os.path.join(
-        config['output_folder'],
-        "bams",
-        f"{wildcards.patient}.tumor.cram")
-    files['crai'] = os.path.join(
-        config['output_folder'],
-        "bams",
-        f"{wildcards.patient}.tumor.cram.crai")
-    return files
-
 rule deepsomatic:
     input:
         unpack(get_deepsomatic_input),
