@@ -2,7 +2,7 @@ container: "docker://continuumio/miniconda3"
 configfile: "config/config.yaml"
 include: "rules/common.smk"
 
-
+running_mode = 'CI'
 rule targets:
     input:
         vcf=expand(
@@ -20,7 +20,16 @@ rule targets:
             "filtered",
             "{patient}.filtered.vcf.gz.tbi"
          ), patient=patients
-         )
+         ),
+         deepsomatic_vcf=expand(
+            os.path.join(
+                config['output_folder'],
+                "vcfs",
+                "{patient}.deepsomatic.vcf.gz"
+            ), patient=patients
+         ),
+
 include: "../workflow/rules/alignment.smk"
 include: "../workflow/rules/preprocessing.smk"
 include: "../workflow/rules/somatic.smk"
+include: "../workflow/rules/deepsomatic.smk"
