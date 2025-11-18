@@ -11,7 +11,7 @@ rule combine_fqs:
         ),
         r2=lookup(
             query=lambda w: f"patient == '{w.patient}' and sample == '{w.sample_type}' and readgroup == '{w.readgroup}'",
-            cols=["fq1"],
+            cols=["fq2"],
             within=units
         ),
     output:
