@@ -7,9 +7,13 @@ rule fastqc:
             ),
     output:
         html=os.path.join(
-            config["output_folder"], "qc", "fastqc", "{patient}.{sample_type}.{readgroup}_fastqc.html"),
+            config["output_folder"], "qc", "fastqc", "{patient}.{sample_type}.{readgroup}.unaligned_fastqc.html"),
         fastqc_zip=temp(os.path.join(
-            config["output_folder"], "qc", "fastqc", "{patient}.{sample_type}.{readgroup}_fastqc.zip")),
+            config["output_folder"], "qc", "fastqc", "{patient}.{sample_type}.{readgroup}.unaligned_fastqc.zip")),
+    params:
+        outfolder = os.path.join(
+            config["output_folder"], "qc", "fastqc"
+        ),
     conda:
         "../envs/qc.yml",
     container:
@@ -19,7 +23,7 @@ rule fastqc:
             config["log_folder"], "stats", "{patient}.{sample_type}.{readgroup}.fastqc.log"),
     shell:
         """
-        fastqc {input} 
+        fastqc {input} -o {params.outfolder}
         """
 
 
@@ -53,24 +57,24 @@ rule mosdepth:
         [
             os.path.join(
             config["output_folder"], "qc", "mosdepth", f"{{patient}}.{{sample_type}}.{suf}"
-            ) for suf in ["mosdepth.global.dist.txt", "mosdepth.regions.dist.txt", "summary.txt"]
+            ) for suf in ["mosdepth.global.dist.txt", "mosdepth.region.dist.txt", "mosdepth.summary.txt"]
         ],
     params:
-        regions = lambda wc, input: f"--by {input.regions}" if "regions" in input else "",
+        regions = lambda wc, input: f"--by {input.regions}" if hasattr(input, 'regions') else "",
         threads = config["params"]["samtools"]["threads"],
         extra = config["params"]["mosdepth"]["extra"],
         prefix = os.path.join(
             config["output_folder"], "qc", "mosdepth", "{patient}.{sample_type}"
         ),
     conda:
-        "../envs/gatk4.yml"
+        "../envs/qc.yml"
     container: "docker://brentp/mosdepth:v0.3.3"
     log:
         os.path.join(
             config["log_folder"], "stats", "{patient}.{sample_type}.mosdepth.log"),
     shell:
         """
-        mosdepth -t {params.threads} {params.regions} {params.extra} {params.prefix} {input.bam}
+        mosdepth -t {params.threads} {params.regions} {params.extra} {params.prefix} {input.bam} 2> {log}
         """
 
 rule multiqc:

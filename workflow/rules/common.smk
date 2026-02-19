@@ -85,11 +85,17 @@ def get_platform(wildcards):
 
 def get_mutect2_input(wildcards):
     files = {}
-    files['tumor'] = f"{config['output_folder']}bams/{wildcards.patient}.tumor.cram"
+    files['tumor'] = os.path.join(
+        config["output_folder"], "bams", f"{wildcards.patient}.tumor.bam"
+    )
+    files['tumor_idx'] = os.path.join(
+        config["output_folder"], "bams", f"{wildcards.patient}.tumor.bam.bai"
+    )
     if not tumor_only:
-        files['normal'] = f"{config['output_folder']}bams/{wildcards.patient}.normal.cram"
+        files['normal'] = os.path.join(config["output_folder"], "bams", f"{wildcards.patient}.normal.bam")
+        files['normal_idx'] = os.path.join(config["output_folder"], "bams", f"{wildcards.patient}.normal.bam.bai")
     return files
-
+    
 def get_contamination_input(wildcards):
     out = {}
     out['tumor'] = f"{config['output_folder']}qc/{wildcards.patient}_tumor_pileupsummaries.table"
@@ -122,13 +128,14 @@ def get_mergestats_input(wildcards):
 
 def get_mosdepth_input(wildcards):
     if config['sequencing_type'] == "WGS":
-        # no need for intervals, just bam
         return {
-            'bam': f"{config['output_folder']}bams/{wildcards.patient}.{wildcards.sample_type}.bam"
+            'bam': f"{config['output_folder']}bams/{wildcards.patient}.{wildcards.sample_type}.bam",
+            'bai': f"{config['output_folder']}bams/{wildcards.patient}.{wildcards.sample_type}.bam.bai",
         }
     else:
         return {
             'bam': f"{config['output_folder']}bams/{wildcards.patient}.{wildcards.sample_type}.bam",
+            'bai': f"{config['output_folder']}bams/{wildcards.patient}.{wildcards.sample_type}.bam.bai",
             'regions': regions_bed
         }
 
@@ -141,7 +148,7 @@ def get_multiqc_inputs(wildcards):
                 config["output_folder"],
                 "qc",
                 "fastqc",
-                "{patient}.{sample_type}.{readgroup}_fastqc.html"
+                "{patient}.{sample_type}.{readgroup}.unaligned_fastqc.html"
             ),
             zip,
             patient=units.index.get_level_values('patient'),
@@ -164,7 +171,7 @@ def get_multiqc_inputs(wildcards):
                 config["output_folder"],
                 "qc",
                 "mosdepth",
-                "{patient}.{sample_type}.summary.txt"
+                "{patient}.{sample_type}.mosdepth.summary.txt"
             ),
             zip,
             patient=ps_index.get_level_values('patient'),

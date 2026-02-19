@@ -95,7 +95,7 @@ rule pileup_summaries:
         bam=os.path.join(
             config['output_folder'],
             "bams",
-            "{patient}.{sample_type}.cram"
+            "{patient}.{sample_type}.bam"
         ),
         ref=config['resources']['reference_fasta'],
         germ_res=config['resources']['contamination']
