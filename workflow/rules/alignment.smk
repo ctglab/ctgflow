@@ -89,7 +89,7 @@ rule bwa:
         ),
     threads: 8
     conda:
-        "../envs/gatk4.yml"
+        "../envs/samtools.yml"
     container:
         config["containers"]["ctgflow_core"]
     log:

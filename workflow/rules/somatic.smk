@@ -320,7 +320,7 @@ rule select_calls:
             )
         ),
     conda:
-        "../envs/gatk4.yml"
+        "../envs/bcftools.yml"
     container:
         config['containers']['ctgflow_core']
     log:
