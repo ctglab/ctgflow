@@ -56,7 +56,7 @@ rule bwa_index:
                 for suf in file_suffixes
             ],
     conda:
-        "../envs/gatk4.yml"
+        "../envs/bwa.yml"
     container:
         config["containers"]["ctgflow_core"]
     log:
@@ -89,7 +89,7 @@ rule bwa:
         ),
     threads: 8
     conda:
-        "../envs/samtools.yml"
+        "../envs/bwa.yml"
     container:
         config["containers"]["ctgflow_core"]
     log:
