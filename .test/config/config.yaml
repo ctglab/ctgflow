@@ -1,12 +1,9 @@
 # One between ["WES", "WGS"]
 sequencing_type: "WES"
 tumor_only: true
-viral_integrated: true
-virus_name: "MCPyV"
 
 # PATH to relevant files
 units: "units.csv"
-patients: "patients.csv"
 
 # DIRECTIVES
 output_folder: "output/"
@@ -17,7 +14,6 @@ log_folder: "logs/"
 resources:
   assembly: "GRCh38"
   genomic_regions: "ref/hg38_chr22_targets.bed"
-  viral_genome: "ref/MPCyV_genome.fa"
   reference_fasta: "ref/GRCh38_chr22.fasta"
   dbsnps: "ref/dbsnp_146.hg38.vcf.gz"
   known-indels: "ref/Homo_sapiens_assembly38.known_indels.vcf.gz"
@@ -43,10 +39,15 @@ params:
     model_type: "WES"
   gatk:
     RAM: 1000
+  mosdepth:
+    extra: '-n -m -x'
+    threads: 4
   mutect2:
     num_workers: 4
     args: --max-population-af 0.05 --genotype-germline-sites --linked-de-bruijn-graph --dont-use-soft-clipped-bases
     filtering: --max-events-in-region 4 --unique-alt-read-count 2 --min-reads-per-strand 1 --min-allele-fraction 0.001
+  samtools: 
+    threads: 2
   vep:
     assembly: "GRCh38"
     threads: 4
