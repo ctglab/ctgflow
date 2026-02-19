@@ -1,13 +1,4 @@
-# File: common.smk
-# Author: Tomas Bencomo
-# Email: tjbencomo@gmail.com
-# Description:
-# Initialization file that loads config information and
-# stores functions to aide with wildcard creation
-
-import sys
 import os
-from pathlib import Path
 import pandas as pd
 from snakemake.utils import validate
 from snakemake.utils import min_version
@@ -17,16 +8,11 @@ min_version("5.9.1")
 configfile: "config/config.yaml"
 
 # Patient/Sample Info
-# validate(config, schema = "../schemas/config.schema.yaml")
-patients = pd.read_csv(config['patients'])['patient']
+validate(config, schema = "../../workflow/schemas/config.schema.yaml")
 units = pd.read_csv(config['units'], dtype=str).set_index(["patient", "sample", "readgroup"], drop=False)
 units = units.sort_index()
+patients = units.index.get_level_values('patient').unique()
 seqtype= config['sequencing_type']
-
-# Check that there are no duplicate patients
-# Duplicate patients cause patient MAFs to be repeated as input to concat_mafs and duplicate SNVs
-if patients.shape[0] != patients.unique().shape[0]:
-    raise ValueError(f"Duplicate patients present in {config['patients']}. Remove duplicates!")
 
 # # Logs
 # slurm_logdir = config['slurm_log_dir']
@@ -87,11 +73,6 @@ def get_deepsomatic_input(wildcards):
         f"{wildcards.patient}.tumor.cram.crai")
     return files
     
-def get_dedup_input(wildcards):
-    rgs = units.loc[(wildcards.patient, wildcards.sample_type), 'readgroup'].unique().tolist()
-    bams = [f"{config['output_folder']}bams/{wildcards.patient}.{wildcards.sample_type}.{rg}.merged.bam" for rg in rgs]
-    return bams
-
 def get_platform(wildcards):
     return units.loc[(wildcards.patient, wildcards.sample_type, wildcards.readgroup), 'platform']
 
@@ -117,22 +98,10 @@ def get_mutect2_input(wildcards):
 
 def get_contamination_input(wildcards):
     out = {}
-    out['tumor'] = f'{config['output_folder']}qc/{wildcards.patient}_tumor_pileupsummaries.table'
+    out['tumor'] = f"{config['output_folder']}qc/{wildcards.patient}_tumor_pileupsummaries.table"
     if not tumor_only:
-        out['normal'] = f'{config['output_folder']}/{wildcards.patient}_normal_pileupsummaries.table'
+        out['normal'] = f"{config['output_folder']}/{wildcards.patient}_normal_pileupsummaries.table"
     return out
-
-def get_coverage_input(wildcards):
-    files = {}
-    files['bam'] = f"{config['output_folder']}bams/{wildcards.patient}.{wildcards.sample_type}.bam"
-    if seqtype == "WES":
-        files['regions'] = regions_bed
-    return files
-
-def isWGS(wildcards):
-    seqtype = units.loc[(wildcards.patient, wildcards.sample_type), 'seqtype'][0]
-    return seqtype == "WGS"
-
 
 def get_intervals():
     ints = []
@@ -142,12 +111,6 @@ def get_intervals():
         ints.append(interval)
     return ints
    
-def get_interval_files():
-    ints = get_intervals()
-    files = [f'{i}-scattered.interval_list' for i in ints]
-    files = [os.path.join(config['output_folder'],"interval-files", f) for f in files]
-    return files
-
 def get_orientationbias_input(wildcards):
     intervals = get_intervals()
     files = [f"{config['output_folder']}vcfs/{wildcards.patient}.{i}.f1r2.tar.gz" for i in intervals]
@@ -163,21 +126,63 @@ def get_mergestats_input(wildcards):
     files = [f"{config['output_folder']}vcfs/{wildcards.patient}.{i}.unfiltered.vcf.stats" for i in intervals]
     return files
 
-def get_gather_bam_input(wildcards):
-    intervals = get_intervals()
-    files = [f"{config['output_folder']}bams/{wildcards.patient}.{wildcards.sample_type}.{i}.bam" for i in intervals]
-    return files
+def get_mosdepth_input(wildcards):
+    if config['sequencing_type'] == "WGS":
+        # no need for intervals, just bam
+        return {
+            'bam': f"{config['output_folder']}bams/{wildcards.patient}.{wildcards.sample_type}.bam"
+        }
+    else:
+        return {
+            'bam': f"{config['output_folder']}bams/{wildcards.patient}.{wildcards.sample_type}.bam",
+            'regions': regions_bed
+        }
 
-def get_bqsr_output(wildcards):
-    intervals = get_intervals()
-    recal = [f"{config['output_folder']}qc/{wildcards.patient}.{wildcards.sample_type}.{i}.recal_data.table" for i in intervals]
-    return recal
-
-
-def get_gather_bqsr_reports(wildcards):
-    intervals = get_intervals()
-    recal=[config['output_folder']
-            +"-I qc/{patient}.{sample_type}.{interval}.recal_data.table" for interval in intervals]
-    return recal
-
-interval_files = get_interval_files()
+def get_multiqc_inputs(wildcards):
+    """Generate input files for multiqc based on execution mode."""
+    ps_index = units.index.droplevel('readgroup').unique()
+    inputs = {
+        "fastqc": expand(
+            os.path.join(
+                config["output_folder"],
+                "qc",
+                "fastqc",
+                "{patient}.{sample_type}.{readgroup}_fastqc.html"
+            ),
+            zip,
+            patient=units.index.get_level_values('patient'),
+            sample_type=units.index.get_level_values('sample'),
+            readgroup=units.index.get_level_values('readgroup'),
+        ),
+        "samtools": expand(
+            os.path.join(
+                config["output_folder"],
+                "qc",
+                "samtools",
+                "{patient}.{sample_type}.stats"
+            ),
+            zip,
+            patient=ps_index.get_level_values('patient'),
+            sample_type=ps_index.get_level_values('sample'),
+        ),
+        "mosdepth": expand(
+            os.path.join(
+                config["output_folder"],
+                "qc",
+                "mosdepth",
+                "{patient}.{sample_type}.summary.txt"
+            ),
+            zip,
+            patient=ps_index.get_level_values('patient'),
+            sample_type=ps_index.get_level_values('sample'),
+        ),
+        "markdup": expand(
+            os.path.join(
+                config["output_folder"], "qc", "{patient}.{sample_type}.markdup_metrics"
+            ),
+            zip,
+            patient=ps_index.get_level_values('patient'),
+            sample_type=ps_index.get_level_values('sample'),
+        ),
+    }
+    return inputs

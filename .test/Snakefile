@@ -21,8 +21,11 @@ rule targets:
             "{patient}.filtered.vcf.gz.tbi"
          ), patient=patients
          ),
+         qc=os.path.join(
+            config["output_folder"], "qc", "multiqc", "multiqc_report.html")
 
 include: "../workflow/rules/alignment.smk"
 include: "../workflow/rules/preprocessing.smk"
 include: "../workflow/rules/somatic.smk"
 include: "../workflow/rules/deepsomatic.smk"
+include: "../workflow/rules/qc.smk"

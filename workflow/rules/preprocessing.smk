@@ -106,7 +106,7 @@ rule sort_mrkdups:
             )
         ),
     conda:
-        "../envs/gatk4.yml"
+        "../envs/samtools.yml"
     container:
         config["containers"]["ctgflow_core"]
     log:
@@ -178,7 +178,7 @@ rule bqsr:
         """
 
 
-rule GatherBQSRReports:
+rule gatherBQSRreports:
     input:
         lambda wc: [
             os.path.join(
@@ -205,7 +205,7 @@ rule GatherBQSRReports:
     shell:
         """
         gatk --java-options "-Xms3000m" \
-            GatherBQSRReports \
+            gatherBQSRreports \
             {params.inputs} \
             -O {output}
         """
@@ -279,7 +279,7 @@ rule apply_bqsr:
         """
 
 
-rule GatherSortedBam:
+rule gatherSortedBam:
     input:
         lambda wc: [
             os.path.join(
@@ -307,13 +307,13 @@ rule GatherSortedBam:
     shell:
         """
         gatk --java-options "-Xms2000m -Xmx2500m" \
-            GatherBamFiles \
+            gatherBamFiles \
             {params.bams} \
             -O {output.bam}
         """
 
 
-rule sortGather:
+rule sortgather:
     input:
         bam=os.path.join(config["output_folder"], "bams", "{patient}.{sample_type}.bam"),
         ref=config["resources"]["reference_fasta"],
@@ -325,11 +325,11 @@ rule sortGather:
             config["output_folder"], "bams", "{patient}.{sample_type}.cram.crai"
         ),
     conda:
-        "../envs/gatk4.yml"
+        "../envs/samtools.yml"
     container:
         config["containers"]["ctgflow_core"]
     log:
-        os.path.join(config["log_folder"], "sortGather", "{patient}.{sample_type}.log"),
+        os.path.join(config["log_folder"], "sortgather", "{patient}.{sample_type}.log"),
     shell:
         """
         samtools sort -O cram \
