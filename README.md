@@ -79,7 +79,7 @@ One row per sequencing unit (read group). Multiplexed samples have multiple rows
 
 | Column | Description | Values |
 |--------|-------------|--------|
-| `patient` | Patient identifier, must match patients.csv | — |
+| `patient` | Patient identifier | — |
 | `sample` | Sample type | `tumor` or `normal` |
 | `platform` | Sequencing platform | `ILLUMINA` |
 | `readgroup` | Read group identifier | e.g. `rg01`, `rg02` |
