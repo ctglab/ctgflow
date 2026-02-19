@@ -1,8 +1,6 @@
-name: qc
+name: samtools
 channels:
     - bioconda
     - conda-forge
 dependencies:
-    - fastqc
-    - multiqc
-    - mosdepth
+    - bcftools
