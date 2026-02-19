@@ -35,7 +35,7 @@ rule samtools_stats:
     params:
         threads = config["params"]["samtools"]["threads"],
     conda:
-        "../envs/samtools.yml"
+        "../envs/gatk4.yml"
     container:
         config["containers"]["ctgflow_core"]
     log:

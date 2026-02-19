@@ -106,7 +106,7 @@ rule sort_mrkdups:
             )
         ),
     conda:
-        "../envs/samtools.yml"
+        "../envs/gatk4.yml"
     container:
         config["containers"]["ctgflow_core"]
     log:
@@ -325,7 +325,7 @@ rule sortgather:
             config["output_folder"], "bams", "{patient}.{sample_type}.cram.crai"
         ),
     conda:
-        "../envs/samtools.yml"
+        "../envs/gatk4.yml"
     container:
         config["containers"]["ctgflow_core"]
     log:
