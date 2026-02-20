@@ -4,5 +4,5 @@ channels:
     - conda-forge
 dependencies:
     - fastqc
-    - multiqc
+    - multiqc=1.33
     - mosdepth
