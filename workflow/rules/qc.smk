@@ -1,3 +1,5 @@
+from pathlib import Path
+
 rule fastqc:
     input:
         os.path.join(
@@ -11,9 +13,8 @@ rule fastqc:
         fastqc_zip=temp(os.path.join(
             config["output_folder"], "qc", "fastqc", "{patient}.{sample_type}.{readgroup}.unaligned_fastqc.zip")),
     params:
-        outfolder = os.path.join(
-            config["output_folder"], "qc", "fastqc"
-        ),
+        outfolder=lambda wc, output: Path(
+            output.data).parent.absolute(),
     conda:
         "../envs/qc.yml",
     container:
