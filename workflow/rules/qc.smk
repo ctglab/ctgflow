@@ -14,7 +14,7 @@ rule fastqc:
             config["output_folder"], "qc", "fastqc", "{patient}.{sample_type}.{readgroup}.unaligned_fastqc.zip")),
     params:
         outfolder=lambda wc, output: Path(
-            output.data).parent.absolute(),
+            output.html).parent.absolute(),
     conda:
         "../envs/qc.yml",
     container:
