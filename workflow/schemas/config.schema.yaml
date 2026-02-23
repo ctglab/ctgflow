@@ -1,57 +1,157 @@
-$schema: "http://json-schema.org/draft-04/schema#"
+$schema: "https://json-schema.org/draft/2020-12/schema"
 
-description: ngs-pipeline configuration file
+description: ctgflow configuration file
 
 type: object
 
 properties:
-    patients:
+    sequencing_type:
         type: string
-        description: filepath to CSV file with patient column
+        enum: ["WES", "WGS"]
+        description: sequencing type - whole exome (WES) or whole genome (WGS)
+    tumor_only:
+        type: boolean
+        description: true for tumor-only analysis, false for tumor-normal paired analysis
     units:
         type: string
-        description: filepath to CSV file with detailed info on each sample
-    ref_dir:
+        description: filepath to units CSV (columns - patient, sample, platform, readgroup, fq1, fq2, seqtype)
+    output_folder:
         type: string
-        description: filepath to directory where reference genome assembly is located
-    ref_fasta:
+        description: path to output directory
+    tmp_dir:
         type: string
-        description: filename of reference genome FASTA file - must be in ref_dir
-    known_sites:
+        description: path to temporary directory for GATK (set to None to disable)
+    log_folder:
         type: string
-        description: comma separated list of filenames containing known variants. These files should be in ref_dir
-    germline_resource:
-        type: string
-        description: filepath to gnomAD allele frequency only VCF file - can be downloaded from GATK Resource Bundle
-    contamination_resource:
-        type: string
-        description: filepath to VCF file with gnomAD biallelic variants - can be downloaded from GATK Resource Bundle
-    vep_dir:
-        type: string
-        description: path to folder where Ensembl Variant Annotation cache files are stored. Both cache and FASTA file are required. See https://uswest.ensembl.org/info/docs/tools/vep/script/vep_cache.html#cache for info on installing these files
-    assembly_version:
-        type: string
-        description: name of assembly to use. Use GRCh38 if you did a vanilla VEP install
-    center_name:
-        type: string
-        description: name of lab where data was processed. Included in the MAF file generated from vcf2maf
-    use_pon:
-        type: boolean
-        description: use panel of normals for variant calling
-    pon_vcf:
-        type: string
-        description: filepath for PON VCF. To build PON from normal samples, set as None
+        description: path to log directory
+    resources:
+        type: object
+        properties:
+            assembly:
+                type: string
+                description: genome assembly name (e.g. GRCh38)
+            genomic_regions:
+                type: string
+                description: BED file of target regions (required for WES)
+            reference_fasta:
+                type: string
+                description: path to reference genome FASTA file
+            dbsnps:
+                type: string
+                description: path to dbSNP VCF (for BQSR)
+            known-indels:
+                type: string
+                description: path to known indels VCF (for BQSR)
+            1000g:
+                type: string
+                description: path to 1000 Genomes VCF (for BQSR)
+            gnomad:
+                type: string
+                description: path to gnomAD allele frequency VCF (for Mutect2)
+            contamination:
+                type: string
+                description: path to gnomAD biallelic variants VCF (for contamination estimation)
+            PoN:
+                type: string
+                description: path to Panel of Normals VCF
+            vep_cache:
+                type: string
+                description: path to VEP cache directory
+        required:
+            - reference_fasta
+            - genomic_regions
+            - dbsnps
+            - known-indels
+            - 1000g
+            - gnomad
+            - contamination
+            - PoN
+    containers:
+        type: object
+        properties:
+            ctgflow_core:
+                type: string
+                description: Docker image URI for core tools (GATK, BWA, SAMtools)
+            qc:
+                type: string
+            deepvariant:
+                type: string
+                description: Docker image URI for DeepVariant
+            deepsomatic:
+                type: string
+                description: Docker image URI for DeepSomatic
+        required:
+            - ctgflow_core
+    params:
+        type: object
+        properties:
+            deepsomatic:
+                type: object
+                properties:
+                    threads:
+                        type: integer
+                    extra:
+                        type: string
+                    model_type:
+                        type: string
+                        enum: ["WES", "WGS"]
+                required: [threads, model_type]
+            gatk:
+                type: object
+                properties:
+                    RAM:
+                        type: integer
+                        description: heap size in MB passed to GATK -Xmx
+                required: [RAM]
+            mosdepth:
+                type: object
+                properties:
+                    extra:
+                        type: string
+                    threads:
+                        type: integer
+                required: [threads]
+            mutect2:
+                type: object
+                properties:
+                    num_workers:
+                        type: integer
+                        description: number of scatter intervals for Mutect2 parallelism
+                    args:
+                        type: string
+                    filtering:
+                        type: string
+                required: [num_workers]
+            samtools:
+                type: object
+                properties:
+                    threads:
+                        type: integer
+                required: [threads]
+            vep:
+                type: object
+                properties:
+                    assembly:
+                        type: string
+                    threads:
+                        type: integer
+                    extra:
+                        type: string
+                required: [assembly, threads]
+        required:
+            - mutect2
+            - gatk
+            - vep
+            - samtools
+            - mosdepth
 
 required:
-    - patients
+    - sequencing_type
+    - tumor_only
     - units
-    - ref_dir
-    - ref_fasta
-    - known_sites
-    - germline_resource
-    - contamination_resource
-    - vep_dir
-    - assembly_version
-    - center_name
-    - use_pon
-    - pon_vcf
+    - output_folder
+    - tmp_dir
+    - log_folder
+    - resources
+    - containers
+    - params

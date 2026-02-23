@@ -178,7 +178,7 @@ rule bqsr:
         """
 
 
-rule GatherBQSRReports:
+rule gatherBQSRreports:
     input:
         lambda wc: [
             os.path.join(
@@ -279,7 +279,7 @@ rule apply_bqsr:
         """
 
 
-rule GatherSortedBam:
+rule gatherSortedBam:
     input:
         lambda wc: [
             os.path.join(
@@ -292,7 +292,7 @@ rule GatherSortedBam:
     output:
         bam=temp(
             os.path.join(
-                config["output_folder"], "bams", "{patient}.{sample_type}.bam"
+                config["output_folder"], "bams", "{patient}.{sample_type}.gathered.bam"
             )
         ),
     params:
@@ -313,31 +313,57 @@ rule GatherSortedBam:
         """
 
 
-rule sortGather:
+rule sortgather:
     input:
-        bam=os.path.join(config["output_folder"], "bams", "{patient}.{sample_type}.bam"),
+        bam=os.path.join(config["output_folder"], "bams", "{patient}.{sample_type}.gathered.bam"),
         ref=config["resources"]["reference_fasta"],
     output:
-        cram=os.path.join(
-            config["output_folder"], "bams", "{patient}.{sample_type}.cram"
+        bam=temp(
+            os.path.join(
+            config["output_folder"], "bams", "{patient}.{sample_type}.bam")
         ),
-        crai=os.path.join(
-            config["output_folder"], "bams", "{patient}.{sample_type}.cram.crai"
-        ),
+        bai=temp(os.path.join(
+            config["output_folder"], "bams", "{patient}.{sample_type}.bam.bai"
+        )),
     conda:
         "../envs/gatk4.yml"
     container:
         config["containers"]["ctgflow_core"]
     log:
-        os.path.join(config["log_folder"], "sortGather", "{patient}.{sample_type}.log"),
+        os.path.join(config["log_folder"], "sortgather", "{patient}.{sample_type}.log"),
     shell:
         """
-        samtools sort -O cram \
+        samtools sort \
         -T {wildcards.patient}.{wildcards.sample_type} \
-        -o {output.cram} {input.bam};
-        samtools index {output.cram}
+        -o {output.bam} {input.bam};
+        samtools index {output.bam}
         """
 
+rule compress_bam:
+    input:
+        bam=os.path.join(config["output_folder"], "bams", "{patient}.{sample_type}.bam"),
+        bai=os.path.join(config["output_folder"], "bams", "{patient}.{sample_type}.bam.bai"),
+    output:
+        bam=os.path.join(
+            config["output_folder"], "bams", "{patient}.{sample_type}.cram"
+        ),
+        crai=os.path.join(
+            config["output_folder"], "bams", "{patient}.{sample_type}.cram.crai"
+        ),
+    params:
+        ref=config["resources"]["reference_fasta"],
+    conda:
+        "../envs/gatk4.yml"
+    container:
+        config["containers"]["ctgflow_core"]
+    log:
+        os.path.join(config["log_folder"], "compress_bam", "{patient}.{sample_type}.log"),
+    shell:
+        """
+        samtools view -C -T {params.ref} -o {output.bam} {input.bam};
+        samtools index {output.bam}
+        """
+        
 rule split_intervals:
     input:
         ref=config["resources"]["reference_fasta"],
